@@ -1,0 +1,235 @@
+import base64
+import json
+import os
+import re
+from typing import Any
+from urllib.parse import unquote_plus
+
+import boto3
+
+s3_client = boto3.client("s3")
+bedrock_runtime = boto3.client("bedrock-runtime")
+
+MODEL_ID = os.environ.get("MODEL_ID", "anthropic.claude-3-5-sonnet-20240620-v1:0")
+DEFAULT_BUCKET = os.environ.get("BUCKET_NAME", "zettelman")
+
+
+def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
+    try:
+        if is_s3_event(event):
+            return handle_s3_trigger(event)
+        return handle_direct_request(event)
+    except Exception as error:
+        print(f"Unhandled error: {error}")
+        return response(500, {"error": str(error)})
+
+
+def is_s3_event(event: dict[str, Any]) -> bool:
+    records = event.get("Records")
+    if not isinstance(records, list) or not records:
+        return False
+    return records[0].get("eventSource") == "aws:s3"
+
+
+def handle_s3_trigger(event: dict[str, Any]) -> dict[str, Any]:
+    processed = 0
+    skipped = 0
+    errors: list[str] = []
+
+    for record in event.get("Records", []):
+        try:
+            bucket = record["s3"]["bucket"]["name"]
+            s3_key = unquote_plus(record["s3"]["object"]["key"])
+        except Exception:
+            skipped += 1
+            continue
+
+        if not s3_key.startswith("received/") or not is_supported_image(s3_key):
+            skipped += 1
+            continue
+
+        try:
+            object_bytes = download_object(bucket, s3_key)
+            media_type = guess_media_type(s3_key)
+            model_result = analyze_with_claude(object_bytes, media_type)
+            analysis_key = analysis_output_key(s3_key)
+            upload_analysis(bucket, analysis_key, {"source_key": s3_key, **model_result})
+            processed += 1
+            print(f"Analysis written to s3://{bucket}/{analysis_key}")
+        except Exception as error:
+            message = f"{s3_key}: {error}"
+            print(f"Failed to process {message}")
+            errors.append(message)
+
+    return {"status": "ok", "processed": processed, "skipped": skipped, "errors": errors}
+
+
+def handle_direct_request(event: dict[str, Any]) -> dict[str, Any]:
+    body = parse_event_body(event)
+    s3_key = body.get("s3Key")
+    bucket = body.get("bucket") or DEFAULT_BUCKET
+
+    if not bucket:
+        return response(400, {"error": "Missing bucket. Set BUCKET_NAME or send bucket in the request."})
+
+    if not s3_key:
+        return response(400, {"error": "Missing required field: s3Key"})
+
+    object_bytes = download_object(bucket, s3_key)
+    media_type = guess_media_type(s3_key)
+    model_result = analyze_with_claude(object_bytes, media_type)
+
+    return response(200, model_result)
+
+
+def parse_event_body(event: dict[str, Any]) -> dict[str, Any]:
+    raw_body = event.get("body")
+
+    if raw_body is None:
+        return event
+
+    if event.get("isBase64Encoded"):
+        raw_body = base64.b64decode(raw_body).decode("utf-8")
+
+    if isinstance(raw_body, dict):
+        return raw_body
+
+    return json.loads(raw_body)
+
+
+def download_object(bucket: str, key: str) -> bytes:
+    print(f"Downloading s3://{bucket}/{key}")
+    result = s3_client.get_object(Bucket=bucket, Key=key)
+    return result["Body"].read()
+
+
+def guess_media_type(key: str) -> str:
+    lowered = key.lower()
+
+    if lowered.endswith(".png"):
+        return "image/png"
+    if lowered.endswith(".webp"):
+        return "image/webp"
+
+    return "image/jpeg"
+
+
+def is_supported_image(key: str) -> bool:
+    lowered = key.lower()
+    return lowered.endswith(".jpg") or lowered.endswith(".jpeg") or lowered.endswith(".png") or lowered.endswith(".webp")
+
+
+def analysis_output_key(source_key: str) -> str:
+    processed = source_key.replace("received/", "processed/", 1)
+    base, _ = os.path.splitext(processed)
+    return f"{base}.analysis.json"
+
+
+def upload_analysis(bucket: str, key: str, payload: dict[str, Any]) -> None:
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=json.dumps(payload).encode("utf-8"),
+        ContentType="application/json",
+    )
+
+
+def analyze_with_claude(object_bytes: bytes, media_type: str) -> dict[str, Any]:
+    prompt = """
+You are analyzing an appointment zettel, usually in German (sometimes English or mixed German/English).
+
+Extract exactly these fields:
+- date_time: ISO 8601 date-time string if the appointment date AND time are clear, otherwise null
+- what: very short summary in at most 5 words
+- where: location text, or empty string if missing
+- confidence: number from 0.0 to 1.0
+
+Rules:
+- Do not invent details that are not visible.
+- If only a date is visible but no time is visible, set date_time to null.
+- Keep "what" short and concrete.
+- Correctly interpret common German date/time patterns, for example:
+  - 21.03.2026
+  - 21.3.26
+  - 28. Maerz 2026
+  - 28. März 2026
+  - 14:30 Uhr
+  - 14.30
+- Convert extracted date/time into ISO 8601 format (YYYY-MM-DDTHH:MM:SS).
+- Preserve the original language for "what" and "where" (do not translate).
+- Return valid JSON only.
+
+Example:
+{"date_time":"2026-03-28T09:30:00","what":"Dermatology follow-up","where":"City Clinic","confidence":0.88}
+""".strip()
+
+    payload = {
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 512,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": base64.b64encode(object_bytes).decode("utf-8"),
+                        },
+                    },
+                    {
+                        "type": "text",
+                        "text": prompt,
+                    },
+                ],
+            }
+        ],
+    }
+
+    response = bedrock_runtime.invoke_model(
+        modelId=MODEL_ID,
+        body=json.dumps(payload),
+        contentType="application/json",
+        accept="application/json",
+    )
+    response_body = json.loads(response["body"].read())
+    raw_text = response_body["content"][0]["text"]
+    parsed = parse_model_json(raw_text)
+
+    return {
+        "date_time": parsed.get("date_time"),
+        "what": normalize_what(parsed.get("what", "")),
+        "where": (parsed.get("where") or "").strip(),
+        "confidence": parsed.get("confidence"),
+    }
+
+
+def parse_model_json(raw_text: str) -> dict[str, Any]:
+    try:
+        return json.loads(raw_text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+        if not match:
+            raise ValueError(f"Claude did not return JSON: {raw_text}")
+        return json.loads(match.group(0))
+
+
+def normalize_what(value: str) -> str:
+    cleaned = " ".join((value or "").strip().split())
+    words = cleaned.split(" ")
+    limited = " ".join(words[:5]).strip()
+    return limited or "Review appointment"
+
+
+def response(status_code: int, body: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+            "Access-Control-Allow-Methods": "OPTIONS,POST",
+        },
+        "body": json.dumps(body),
+    }

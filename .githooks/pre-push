@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks is required for pre-push secret scanning."
+  echo "Install with: brew install gitleaks"
+  exit 1
+fi
+
+zeros="0000000000000000000000000000000000000000"
+log_ranges=()
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ -z "${local_ref:-}" || -z "${local_sha:-}" || -z "${remote_sha:-}" ]]; then
+    continue
+  fi
+
+  # Deleted branch/tag; nothing local to scan.
+  if [[ "$local_sha" == "$zeros" ]]; then
+    continue
+  fi
+
+  if [[ "$remote_sha" == "$zeros" ]]; then
+    # New branch/tag on remote: scan all commits reachable from local tip.
+    log_ranges+=("$local_sha")
+  else
+    # Existing remote ref: scan commits in push range only.
+    log_ranges+=("${remote_sha}..${local_sha}")
+  fi
+done
+
+if [[ ${#log_ranges[@]} -eq 0 ]]; then
+  exit 0
+fi
+
+echo "Running gitleaks pre-push scan..."
+
+if ! gitleaks git --no-banner --redact --log-level warn --log-opts="${log_ranges[*]}"; then
+  cat <<'EOF'
+Push blocked: possible secrets detected by gitleaks.
+If this is a false positive, add an allowlist entry in .gitleaks.toml or .gitleaksignore.
+EOF
+  exit 1
+fi
+
+echo "gitleaks passed."
