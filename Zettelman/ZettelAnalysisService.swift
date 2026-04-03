@@ -17,13 +17,17 @@ final class ZettelAnalysisService {
 
         while DispatchTime.now().uptimeNanoseconds < deadline {
             do {
-                let data = try await s3Service.downloadZettelData(for: analysisKey)
+                let data = try await s3Service.downloadData(
+                    for: analysisKey,
+                    operation: "downloading Lambda analysis output"
+                )
                 let payload = try decodePayload(from: data)
 
                 return ZettelAnalysis(
                     detectedDateTime: parseDate(payload.dateTime),
                     what: payload.what.normalizedWhat(),
                     location: payload.location.trimmingCharacters(in: .whitespacesAndNewlines),
+                    withWhom: (payload.withWhom ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
                     rawDateTime: payload.dateTime,
                     confidence: payload.confidence
                 )
@@ -36,13 +40,23 @@ final class ZettelAnalysisService {
             try await Task.sleep(nanoseconds: pollIntervalNanoseconds)
         }
 
-        throw ZettelmanError.analysisTimeout
+        throw ZettelmanError.unsupportedResponse(
+            "Timed out waiting for Lambda analysis output in S3. Expected key: \(analysisKey)"
+        )
     }
 
     private func analysisOutputKey(for sourceKey: String) -> String {
-        let processedKey = sourceKey.replacingOccurrences(of: "received/", with: "processed/")
-        let url = URL(fileURLWithPath: processedKey)
-        let withoutExtension = url.deletingPathExtension().path
+        let trimmedSourceKey = sourceKey.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let processedKey: String
+
+        if trimmedSourceKey.hasPrefix("received/") {
+            let suffix = trimmedSourceKey.dropFirst("received/".count)
+            processedKey = "processed/\(suffix)"
+        } else {
+            processedKey = trimmedSourceKey.replacingOccurrences(of: "received/", with: "processed/")
+        }
+
+        let withoutExtension = (processedKey as NSString).deletingPathExtension
         return withoutExtension + ".analysis.json"
     }
 
@@ -76,9 +90,16 @@ final class ZettelAnalysisService {
         }
 
         let formats = [
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd HH:mm:ss",
             "yyyy-MM-dd HH:mm",
             "yyyy-MM-dd'T'HH:mm",
-            "yyyy-MM-dd"
+            "yyyy-MM-dd",
+            "dd.MM.yyyy HH:mm",
+            "dd.MM.yy HH:mm",
+            "dd.MM.yyyy",
+            "dd.MM.yy"
         ]
 
         let formatter = DateFormatter()
@@ -99,12 +120,14 @@ final class ZettelAnalysisService {
         let dateTime: String?
         let what: String
         let location: String
+        let withWhom: String?
         let confidence: Double?
 
         enum CodingKeys: String, CodingKey {
             case dateTime = "date_time"
             case what
             case location = "where"
+            case withWhom = "with_whom"
             case confidence
         }
     }

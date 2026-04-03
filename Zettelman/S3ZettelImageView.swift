@@ -9,6 +9,7 @@ struct S3ZettelImageView: View {
     let key: String
     let cornerRadius: CGFloat
 
+    @Environment(\.colorScheme) private var colorScheme
     @State private var image: UIImage?
     @State private var isLoading = false
     @State private var loadFailed = false
@@ -24,13 +25,13 @@ struct S3ZettelImageView: View {
             } else if isLoading {
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(Color.black.opacity(0.05))
+                        .fill(loadingPlaceholderFillColor)
                     ProgressView()
                 }
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(Color.black.opacity(0.06))
+                        .fill(emptyPlaceholderFillColor)
 
                     VStack(spacing: 8) {
                         Image(systemName: loadFailed ? "exclamationmark.triangle" : "doc.text.image")
@@ -46,6 +47,14 @@ struct S3ZettelImageView: View {
         .task(id: key) {
             await loadIfNeeded()
         }
+    }
+
+    private var loadingPlaceholderFillColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.05)
+    }
+
+    private var emptyPlaceholderFillColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06)
     }
 
     @MainActor

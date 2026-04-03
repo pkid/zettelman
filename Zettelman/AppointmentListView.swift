@@ -1,15 +1,17 @@
 import SwiftUI
 
 struct AppointmentListView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var authManager: CognitoAuthManager
     @StateObject private var store = AppointmentStore()
     @State private var showingComposer = false
+    @State private var showingAccountPopup = false
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 LinearGradient(
-                    colors: [Color(red: 0.97, green: 0.95, blue: 0.88), Color(red: 0.92, green: 0.96, blue: 0.93)],
+                    colors: backgroundGradientColors,
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -17,7 +19,11 @@ struct AppointmentListView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
-                        header
+                        if let errorMessage = store.errorMessage, !errorMessage.isEmpty {
+                            Text(errorMessage)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
 
                         if store.isLoading && store.appointments.isEmpty {
                             loadingState
@@ -35,6 +41,18 @@ struct AppointmentListView: View {
             .navigationTitle("Appointments")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { showingAccountPopup = true }) {
+                        Image(systemName: "person.crop.circle")
+                            .font(.title3)
+                    }
+                }
+
+                ToolbarItem(placement: .principal) {
+                    Text("Appointments")
+                        .font(.headline)
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Sign Out") {
                         Task {
@@ -45,6 +63,11 @@ struct AppointmentListView: View {
                 }
             }
         }
+        .alert("Signed In Account", isPresented: $showingAccountPopup) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(authManager.userEmail ?? "Unknown user")
+        }
         .sheet(isPresented: $showingComposer) {
             AddAppointmentView(store: store)
         }
@@ -54,30 +77,6 @@ struct AppointmentListView: View {
         .refreshable {
             await store.loadAppointments(forceRefresh: true)
         }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Upload, confirm, and keep every appointment zettel in one place.")
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(red: 0.19, green: 0.18, blue: 0.13))
-
-            HStack(spacing: 12) {
-                badge(title: authManager.userEmail ?? "Unknown user", systemImage: "person.crop.circle")
-
-                if let company = authManager.userCompany, !company.isEmpty {
-                    badge(title: company, systemImage: "building.2")
-                }
-            }
-
-            if let errorMessage = store.errorMessage, !errorMessage.isEmpty {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-            }
-        }
-        .padding(22)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
     }
 
     private var loadingState: some View {
@@ -94,26 +93,29 @@ struct AppointmentListView: View {
         VStack(spacing: 16) {
             Image(systemName: "calendar.badge.plus")
                 .font(.system(size: 44))
-                .foregroundStyle(Color(red: 0.45, green: 0.34, blue: 0.22))
+                .foregroundStyle(emptyIconColor)
 
             Text("No appointments saved yet")
                 .font(.title3.weight(.semibold))
+                .foregroundStyle(emptyTitleColor)
 
             Text("Add your first zettel, let Lambda extract the appointment, and confirm the details.")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(emptySubtitleColor)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(28)
-        .background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .background(emptyCardColor, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
     private var appointmentCards: some View {
         LazyVStack(spacing: 14) {
             ForEach(store.appointments) { appointment in
                 NavigationLink {
-                    AppointmentDetailView(appointment: appointment)
+                    AppointmentDetailView(appointment: appointment, onDelete: {
+                        try await store.deleteAppointment(appointment)
+                    })
                 } label: {
                     HStack(spacing: 14) {
                         S3ZettelImageView(key: appointment.uploadedZettel.key, cornerRadius: 22)
@@ -131,15 +133,18 @@ struct AppointmentListView: View {
                                 .font(.subheadline)
                                 .lineLimit(2)
 
-                            Text(appointment.uploadedZettel.filename)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            if let withWhom = appointment.withWhom, !withWhom.isEmpty {
+                                Label(withWhom, systemImage: "person.text.rectangle")
+                                    .font(.subheadline)
+                                    .lineLimit(1)
+                            }
+
                         }
 
                         Spacer(minLength: 0)
                     }
                     .padding(16)
-                    .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .background(cardBackgroundColor, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
@@ -160,11 +165,32 @@ struct AppointmentListView: View {
         .padding(20)
     }
 
-    private func badge(title: String, systemImage: String) -> some View {
-        Label(title, systemImage: systemImage)
-            .font(.footnote.weight(.medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color.white.opacity(0.75), in: Capsule())
+    private var backgroundGradientColors: [Color] {
+        if colorScheme == .dark {
+            return [Color(red: 0.09, green: 0.10, blue: 0.10), Color(red: 0.12, green: 0.16, blue: 0.15)]
+        }
+
+        return [Color(red: 0.97, green: 0.95, blue: 0.88), Color(red: 0.92, green: 0.96, blue: 0.93)]
     }
+
+    private var cardBackgroundColor: Color {
+        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white.opacity(0.88)
+    }
+
+    private var emptyCardColor: Color {
+        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white.opacity(0.7)
+    }
+
+    private var emptyTitleColor: Color {
+        Color(uiColor: .label)
+    }
+
+    private var emptySubtitleColor: Color {
+        Color(uiColor: .secondaryLabel)
+    }
+
+    private var emptyIconColor: Color {
+        colorScheme == .dark ? Color(red: 0.83, green: 0.66, blue: 0.42) : Color(red: 0.45, green: 0.34, blue: 0.22)
+    }
+
 }

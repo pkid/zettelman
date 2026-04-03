@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct CognitoAuthView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var authManager: CognitoAuthManager
 
     @State private var mode: AuthMode = .signIn
     @State private var email = ""
-    @State private var company = ""
     @State private var password = ""
     @State private var confirmPassword = ""
     @State private var confirmationCode = ""
@@ -24,7 +24,7 @@ struct CognitoAuthView: View {
         NavigationStack {
             ZStack {
                 LinearGradient(
-                    colors: [Color(red: 0.97, green: 0.93, blue: 0.85), Color(red: 0.92, green: 0.96, blue: 0.92)],
+                    colors: backgroundGradientColors,
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -52,15 +52,15 @@ struct CognitoAuthView: View {
         VStack(spacing: 12) {
             Image(systemName: "note.text.badge.plus")
                 .font(.system(size: 54, weight: .semibold))
-                .foregroundStyle(Color(red: 0.39, green: 0.27, blue: 0.16))
+                .foregroundStyle(iconColor)
 
             Text("Zettelman")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(red: 0.16, green: 0.16, blue: 0.13))
+                .foregroundStyle(titleColor)
 
             Text(modeSubtitle)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(subtitleColor)
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 24)
@@ -68,29 +68,38 @@ struct CognitoAuthView: View {
 
     private var formCard: some View {
         VStack(spacing: 18) {
-            Group {
+            inputField(
                 TextField("Email", text: $email)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.emailAddress)
+                    .autocorrectionDisabled()
+                    .textContentType(nil)
+            )
+            .disabled(isLoading)
 
-                if mode == .signUp {
-                    TextField("Company", text: $company)
-                        .textInputAutocapitalization(.words)
-                }
-
+            inputField(
                 SecureField(mode == .confirmResetPassword ? "New password" : "Password", text: $password)
+                    .textContentType(nil)
+            )
+            .disabled(isLoading)
 
-                if mode == .signUp || mode == .confirmResetPassword {
+            if mode == .signUp || mode == .confirmResetPassword {
+                inputField(
                     SecureField("Confirm password", text: $confirmPassword)
-                }
+                        .textContentType(nil)
+                )
+                .disabled(isLoading)
+            }
 
-                if mode == .confirmResetPassword {
+            if mode == .confirmResetPassword {
+                inputField(
                     TextField("Reset code", text: $confirmationCode)
                         .textInputAutocapitalization(.never)
-                }
+                        .autocorrectionDisabled()
+                        .textContentType(nil)
+                )
+                .disabled(isLoading)
             }
-            .textFieldStyle(.roundedBorder)
-            .disabled(isLoading)
 
             Button(action: submit) {
                 HStack {
@@ -131,7 +140,7 @@ struct CognitoAuthView: View {
             }
         }
         .font(.footnote)
-        .foregroundStyle(Color(red: 0.34, green: 0.26, blue: 0.16))
+        .foregroundStyle(footerColor)
     }
 
     private var modeSubtitle: String {
@@ -165,7 +174,7 @@ struct CognitoAuthView: View {
         case .signIn:
             return Color(red: 0.28, green: 0.45, blue: 0.34)
         case .signUp:
-            return Color(red: 0.70, green: 0.45, blue: 0.18)
+            return Color(red: 0.56, green: 0.35, blue: 0.14)
         case .resetPassword, .confirmResetPassword:
             return Color(red: 0.48, green: 0.35, blue: 0.19)
         }
@@ -178,7 +187,7 @@ struct CognitoAuthView: View {
         case .signIn:
             return !password.isEmpty
         case .signUp:
-            return !company.isEmpty && !password.isEmpty && password == confirmPassword && password.count >= 8
+            return !password.isEmpty && password == confirmPassword && password.count >= 8
         case .resetPassword:
             return true
         case .confirmResetPassword:
@@ -200,8 +209,7 @@ struct CognitoAuthView: View {
             case .signUp:
                 result = await authManager.signUp(
                     email: email.trimmingCharacters(in: .whitespacesAndNewlines),
-                    password: password,
-                    company: company.trimmingCharacters(in: .whitespacesAndNewlines)
+                    password: password
                 )
             case .resetPassword:
                 result = await authManager.resetPassword(email: email.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -219,7 +227,7 @@ struct CognitoAuthView: View {
             isLoading = false
 
             if case let .failure(error) = result {
-                alertMessage = error.localizedDescription
+                alertMessage = authManager.errorMessage ?? error.localizedDescription
                 showingAlert = true
             } else if mode == .signUp {
                 alertMessage = "Account created. If your Cognito pool uses manual approval, confirm the user before signing in."
@@ -231,5 +239,52 @@ struct CognitoAuthView: View {
                 mode = .signIn
             }
         }
+    }
+
+    private var backgroundGradientColors: [Color] {
+        if colorScheme == .dark {
+            return [Color(red: 0.09, green: 0.10, blue: 0.10), Color(red: 0.13, green: 0.16, blue: 0.14)]
+        }
+
+        return [Color(red: 0.97, green: 0.93, blue: 0.85), Color(red: 0.92, green: 0.96, blue: 0.92)]
+    }
+
+    private var titleColor: Color {
+        colorScheme == .dark ? Color(uiColor: .label) : Color(red: 0.16, green: 0.16, blue: 0.13)
+    }
+
+    private var subtitleColor: Color {
+        colorScheme == .dark ? Color(uiColor: .secondaryLabel) : Color(red: 0.32, green: 0.32, blue: 0.28)
+    }
+
+    private var iconColor: Color {
+        colorScheme == .dark ? Color(red: 0.83, green: 0.66, blue: 0.42) : Color(red: 0.39, green: 0.27, blue: 0.16)
+    }
+
+    private var footerColor: Color {
+        colorScheme == .dark ? Color(uiColor: .secondaryLabel) : Color(red: 0.34, green: 0.26, blue: 0.16)
+    }
+
+    private var inputFillColor: Color {
+        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color.white.opacity(0.95)
+    }
+
+    private var inputBorderColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.16) : Color.black.opacity(0.08)
+    }
+
+    private func inputField<Content: View>(_ content: Content) -> some View {
+        content
+            .foregroundStyle(Color(uiColor: .label))
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(inputFillColor)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(inputBorderColor, lineWidth: 1)
+            )
     }
 }

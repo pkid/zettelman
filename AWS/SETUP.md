@@ -56,7 +56,8 @@ Example output JSON content:
   "source_key": "received/yashu_at_example_com/zettels/260321101530-a1b2c3d4.jpg",
   "date_time": "2026-03-28T09:30:00",
   "what": "Dermatology follow-up",
-  "where": "City Clinic",
+  "where": "City Clinic, Hauptstrasse 12, 80331 Muenchen",
+  "with_whom": "Dr. Mueller",
   "confidence": 0.88
 }
 ```

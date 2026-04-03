@@ -15,7 +15,6 @@ final class CognitoAuthManager: ObservableObject {
 
     @Published var isSignedIn = false
     @Published var userEmail: String?
-    @Published var userCompany: String?
     @Published var authState: AuthState = .loading
     @Published var errorMessage: String?
 
@@ -36,11 +35,9 @@ final class CognitoAuthManager: ObservableObject {
             let currentUser = try await Amplify.Auth.getCurrentUser()
             let attributes = try await Amplify.Auth.fetchUserAttributes()
             let email = attributes.first(where: { $0.key == .email })?.value ?? currentUser.username
-            let company = attributes.first(where: { $0.key == .address })?.value
 
             isSignedIn = true
             userEmail = email
-            userCompany = company
             authState = .signedIn
             errorMessage = nil
         } catch {
@@ -64,12 +61,13 @@ final class CognitoAuthManager: ObservableObject {
             return .success(())
         } catch {
             authState = .signedOut
-            errorMessage = error.localizedDescription
-            return .failure(error)
+            let friendlyError = normalizedAuthError(from: error)
+            errorMessage = friendlyError.localizedDescription
+            return .failure(friendlyError)
         }
     }
 
-    func signUp(email: String, password: String, company: String) async -> Result<Void, Error> {
+    func signUp(email: String, password: String) async -> Result<Void, Error> {
         authState = .signingUp
         errorMessage = nil
 
@@ -79,8 +77,7 @@ final class CognitoAuthManager: ObservableObject {
                 password: password,
                 options: .init(
                     userAttributes: [
-                        AuthUserAttribute(.email, value: email),
-                        AuthUserAttribute(.address, value: company)
+                        AuthUserAttribute(.email, value: email)
                     ]
                 )
             )
@@ -89,8 +86,9 @@ final class CognitoAuthManager: ObservableObject {
             return .success(())
         } catch {
             authState = .signedOut
-            errorMessage = error.localizedDescription
-            return .failure(error)
+            let friendlyError = normalizedAuthError(from: error)
+            errorMessage = friendlyError.localizedDescription
+            return .failure(friendlyError)
         }
     }
 
@@ -104,8 +102,9 @@ final class CognitoAuthManager: ObservableObject {
             return .success(())
         } catch {
             authState = .signedOut
-            errorMessage = error.localizedDescription
-            return .failure(error)
+            let friendlyError = normalizedAuthError(from: error)
+            errorMessage = friendlyError.localizedDescription
+            return .failure(friendlyError)
         }
     }
 
@@ -122,8 +121,9 @@ final class CognitoAuthManager: ObservableObject {
             authState = .signedOut
             return .success(())
         } catch {
-            errorMessage = error.localizedDescription
-            return .failure(error)
+            let friendlyError = normalizedAuthError(from: error)
+            errorMessage = friendlyError.localizedDescription
+            return .failure(friendlyError)
         }
     }
 
@@ -136,7 +136,64 @@ final class CognitoAuthManager: ObservableObject {
     private func resetSessionState() {
         isSignedIn = false
         userEmail = nil
-        userCompany = nil
         authState = .signedOut
+    }
+
+    private func normalizedAuthError(from error: Error) -> Error {
+        guard let authError = error as? AuthError else {
+            return error
+        }
+
+        switch authError {
+        case .service(let description, let recoverySuggestion, _):
+            let message = bestMessage(description: description, fallback: recoverySuggestion)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
+        case .validation(_, let description, let recoverySuggestion, _):
+            let message = bestMessage(description: description, fallback: recoverySuggestion)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
+        case .notAuthorized(let description, let recoverySuggestion, _):
+            let message = bestMessage(description: description, fallback: recoverySuggestion)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
+        case .unknown(let description, _):
+            let message = description.trimmingCharacters(in: .whitespacesAndNewlines)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 4,
+                userInfo: [NSLocalizedDescriptionKey: message.isEmpty ? "Authentication failed. Please try again." : message]
+            )
+        default:
+            return error
+        }
+    }
+
+    private func bestMessage(description: String, fallback: String) -> String {
+        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedDescription.isEmpty, trimmedDescription != "unknown" {
+            if trimmedDescription.localizedCaseInsensitiveContains("UsernameExistsException")
+                || trimmedDescription.localizedCaseInsensitiveContains("already exists") {
+                return "An account with this email already exists. Please sign in instead."
+            }
+
+            return trimmedDescription
+        }
+
+        let trimmedFallback = fallback.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedFallback.isEmpty, trimmedFallback != "unknown" {
+            return trimmedFallback
+        }
+
+        return "Authentication failed. Please check your input and try again."
     }
 }

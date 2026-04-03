@@ -4,6 +4,7 @@ import UIKit
 struct AddAppointmentView: View {
     @ObservedObject var store: AppointmentStore
 
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedImage: UIImage?
@@ -18,7 +19,7 @@ struct AddAppointmentView: View {
         NavigationStack {
             ZStack {
                 LinearGradient(
-                    colors: [Color(red: 0.98, green: 0.96, blue: 0.90), Color.white],
+                    colors: backgroundGradientColors,
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -28,10 +29,12 @@ struct AddAppointmentView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         heroCard
                         captureControls
-                        analyzeButton
                     }
                     .padding(20)
                 }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                analyzeButtonBar
             }
             .navigationTitle("New Appointment")
             .navigationBarTitleDisplayMode(.inline)
@@ -76,11 +79,7 @@ struct AddAppointmentView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Capture a zettel")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(red: 0.24, green: 0.18, blue: 0.10))
-
-            Text("Take a picture or select a photo. The app uploads it to S3, asks Lambda + Claude for the date/time, what, and where, then lets the user confirm everything before saving.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(heroTitleColor)
 
             Group {
                 if let selectedImage {
@@ -88,10 +87,11 @@ struct AddAppointmentView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(maxWidth: .infinity)
+                        .frame(maxHeight: 380)
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 } else {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Color.white.opacity(0.85))
+                        .fill(heroPlaceholderFillColor)
                         .frame(height: 260)
                         .overlay {
                             VStack(spacing: 12) {
@@ -99,11 +99,8 @@ struct AddAppointmentView: View {
                                     .font(.system(size: 36, weight: .medium))
                                 Text("No zettel selected yet")
                                     .font(.headline)
-                                Text("Use one of the actions below.")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
                             }
-                            .foregroundStyle(Color(red: 0.43, green: 0.30, blue: 0.19))
+                            .foregroundStyle(heroPlaceholderAccentColor)
                         }
                 }
             }
@@ -111,7 +108,7 @@ struct AddAppointmentView: View {
         .padding(22)
         .background(
             RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(Color(red: 0.96, green: 0.90, blue: 0.76))
+                .fill(heroCardFillColor)
         )
     }
 
@@ -142,11 +139,19 @@ struct AddAppointmentView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(selectedImage == nil || isAnalyzing ? Color.gray : Color(red: 0.28, green: 0.45, blue: 0.34))
-            .foregroundStyle(.white)
+            .background(isAnalyzeButtonDisabled ? disabledAnalyzeButtonColor : analyzeButtonColor)
+            .foregroundStyle(isAnalyzeButtonDisabled ? disabledAnalyzeButtonTextColor : .white)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
-        .disabled(selectedImage == nil || isAnalyzing)
+        .disabled(isAnalyzeButtonDisabled)
+    }
+
+    private var analyzeButtonBar: some View {
+        analyzeButton
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            .padding(.bottom, 10)
+            .background(.ultraThinMaterial)
     }
 
     private func label(title: String, icon: String) -> some View {
@@ -159,8 +164,8 @@ struct AddAppointmentView: View {
         }
         .padding(.horizontal, 18)
         .frame(height: 54)
-        .background(Color.white.opacity(0.96))
-        .foregroundStyle(Color(red: 0.22, green: 0.18, blue: 0.12))
+        .background(actionButtonFillColor)
+        .foregroundStyle(actionButtonTextColor)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
@@ -180,5 +185,53 @@ struct AddAppointmentView: View {
                 showingAlert = true
             }
         }
+    }
+
+    private var backgroundGradientColors: [Color] {
+        if colorScheme == .dark {
+            return [Color(red: 0.09, green: 0.10, blue: 0.10), Color(red: 0.12, green: 0.16, blue: 0.15)]
+        }
+
+        return [Color(red: 0.98, green: 0.96, blue: 0.90), Color.white]
+    }
+
+    private var heroCardFillColor: Color {
+        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color(red: 0.96, green: 0.90, blue: 0.76)
+    }
+
+    private var heroPlaceholderFillColor: Color {
+        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color.white.opacity(0.85)
+    }
+
+    private var heroTitleColor: Color {
+        colorScheme == .dark ? Color(uiColor: .label) : Color(red: 0.24, green: 0.18, blue: 0.10)
+    }
+
+    private var heroPlaceholderAccentColor: Color {
+        colorScheme == .dark ? Color(red: 0.83, green: 0.66, blue: 0.42) : Color(red: 0.43, green: 0.30, blue: 0.19)
+    }
+
+    private var actionButtonFillColor: Color {
+        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color.white.opacity(0.96)
+    }
+
+    private var actionButtonTextColor: Color {
+        Color(uiColor: .label)
+    }
+
+    private var analyzeButtonColor: Color {
+        Color(red: 0.28, green: 0.45, blue: 0.34)
+    }
+
+    private var isAnalyzeButtonDisabled: Bool {
+        selectedImage == nil || isAnalyzing
+    }
+
+    private var disabledAnalyzeButtonColor: Color {
+        Color(uiColor: .systemGray4)
+    }
+
+    private var disabledAnalyzeButtonTextColor: Color {
+        Color(uiColor: .label)
     }
 }

@@ -30,28 +30,20 @@ struct AppointmentConfirmationView: View {
                             .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
                     }
 
-                    if let rawDateTime = editedDraft.rawDateTime, !rawDateTime.isEmpty {
-                        LabeledContent("Model date/time") {
-                            Text(rawDateTime)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-
-                    LabeledContent("S3 key") {
-                        Text(editedDraft.uploadedZettel.key)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.trailing)
-                    }
                 }
 
                 Section("Confirm Appointment") {
                     DatePicker("Date and time", selection: $editedDraft.scheduledAt)
 
+                    Toggle("Reminder 30 min before", isOn: $editedDraft.reminderEnabled)
+
                     TextField("What", text: $editedDraft.what)
                         .textInputAutocapitalization(.sentences)
 
                     TextField("Where", text: $editedDraft.location)
+                        .textInputAutocapitalization(.words)
+
+                    TextField("With whom (optional)", text: $editedDraft.withWhom)
                         .textInputAutocapitalization(.words)
 
                     Text("\(wordCount(of: editedDraft.what))/5 words")
@@ -113,6 +105,7 @@ struct AppointmentConfirmationView: View {
 
         editedDraft.what = trimmedWhat
         editedDraft.location = trimmedWhere
+        editedDraft.withWhom = editedDraft.withWhom.trimmingCharacters(in: .whitespacesAndNewlines)
         isSaving = true
 
         Task {

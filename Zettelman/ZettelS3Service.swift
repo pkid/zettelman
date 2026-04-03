@@ -25,38 +25,58 @@ final class ZettelS3Service {
         let filename = "\(timestampString())-\(UUID().uuidString.prefix(8)).jpg"
         let key = "received/\(context.emailFolder)/zettels/\(filename)"
 
-        let uploadTask = Amplify.Storage.uploadData(
-            path: .fromString(key),
-            data: imageData,
-            options: .init()
-        )
+        do {
+            let uploadTask = Amplify.Storage.uploadData(
+                path: .fromString(key),
+                data: imageData,
+                options: .init()
+            )
 
-        _ = try await uploadTask.value
-        return UploadedZettel(key: key, filename: filename, uploadedAt: Date())
+            _ = try await uploadTask.value
+            return UploadedZettel(key: key, filename: filename, uploadedAt: Date())
+        } catch {
+            throw normalizedStorageError(error, operation: "uploading the zettel image")
+        }
     }
 
     func downloadZettelData(for key: String) async throws -> Data {
-        let task = Amplify.Storage.downloadData(path: .fromString(key), options: .init())
-        return try await task.value
+        try await downloadData(for: key, operation: "downloading the zettel")
+    }
+
+    func downloadData(for key: String, operation: String) async throws -> Data {
+        do {
+            let task = Amplify.Storage.downloadData(path: .fromString(key), options: .init())
+            return try await task.value
+        } catch {
+            throw normalizedStorageError(error, operation: operation)
+        }
     }
 
     func temporaryURL(for key: String) async throws -> URL {
-        try await Amplify.Storage.getURL(path: .fromString(key), options: .init())
+        do {
+            return try await Amplify.Storage.getURL(path: .fromString(key), options: .init())
+        } catch {
+            throw normalizedStorageError(error, operation: "getting the zettel link")
+        }
     }
 
     func loadAppointmentsManifest() async throws -> [Appointment] {
         let context = try await currentUserContext()
-        let directoryKey = appointmentsDirectoryKey(for: context)
         let manifestKey = appointmentsManifestKey(for: context)
 
-        let listResult = try await Amplify.Storage.list(path: .fromString(directoryKey), options: .init())
-        guard listResult.items.contains(where: { $0.path == manifestKey }) else {
-            return []
-        }
+        do {
+            let downloadTask = Amplify.Storage.downloadData(path: .fromString(manifestKey), options: .init())
+            let data = try await downloadTask.value
+            return try decoder.decode([Appointment].self, from: data)
+        } catch let storageError as StorageError {
+            if case .keyNotFound = storageError {
+                return []
+            }
 
-        let downloadTask = Amplify.Storage.downloadData(path: .fromString(manifestKey), options: .init())
-        let data = try await downloadTask.value
-        return try decoder.decode([Appointment].self, from: data)
+            throw normalizedStorageError(storageError, operation: "loading appointments")
+        } catch {
+            throw normalizedStorageError(error, operation: "loading appointments")
+        }
     }
 
     func saveAppointmentsManifest(_ appointments: [Appointment]) async throws {
@@ -64,13 +84,17 @@ final class ZettelS3Service {
         let manifestKey = appointmentsManifestKey(for: context)
         let data = try encoder.encode(appointments)
 
-        let uploadTask = Amplify.Storage.uploadData(
-            path: .fromString(manifestKey),
-            data: data,
-            options: .init()
-        )
+        do {
+            let uploadTask = Amplify.Storage.uploadData(
+                path: .fromString(manifestKey),
+                data: data,
+                options: .init()
+            )
 
-        _ = try await uploadTask.value
+            _ = try await uploadTask.value
+        } catch {
+            throw normalizedStorageError(error, operation: "saving appointments")
+        }
     }
 
     func currentUserContext() async throws -> UserStorageContext {
@@ -118,5 +142,86 @@ final class ZettelS3Service {
         formatter.dateFormat = "yyMMddHHmmss"
         formatter.timeZone = .current
         return formatter.string(from: Date())
+    }
+
+    private func normalizedStorageError(_ error: Error, operation: String) -> Error {
+        guard let storageError = error as? StorageError else {
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "S3 error while \(operation): \(error.localizedDescription)"]
+            )
+        }
+
+        switch storageError {
+        case .accessDenied(let description, _, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "S3 access denied while \(operation). Check the Cognito Identity Pool authenticated role permissions. (\(description))"]
+            )
+        case .authError(let description, _, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "S3 auth failed while \(operation). Please sign out and sign in again. (\(description))"]
+            )
+        case .configuration(let description, _, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "S3 configuration issue while \(operation). Verify bucket and region in amplifyconfiguration.json. (\(description))"]
+            )
+        case .httpStatusError(let statusCode, _, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 4,
+                userInfo: [NSLocalizedDescriptionKey: "S3 returned HTTP \(statusCode) while \(operation)."]
+            )
+        case .keyNotFound:
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 5,
+                userInfo: [NSLocalizedDescriptionKey: "The requested S3 object was not found while \(operation)."]
+            )
+        case .localFileNotFound(let description, _, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 6,
+                userInfo: [NSLocalizedDescriptionKey: "Local file missing while \(operation). (\(description))"]
+            )
+        case .service(let description, let recoverySuggestion, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 7,
+                userInfo: [NSLocalizedDescriptionKey: "S3 service error while \(operation): \(bestStorageMessage(description: description, fallback: recoverySuggestion))"]
+            )
+        case .unknown(let description, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 8,
+                userInfo: [NSLocalizedDescriptionKey: "Unexpected S3 error while \(operation): \(description)"]
+            )
+        case .validation(_, let description, let recoverySuggestion, _):
+            return NSError(
+                domain: "Zettelman.Storage",
+                code: 9,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid storage request while \(operation): \(bestStorageMessage(description: description, fallback: recoverySuggestion))"]
+            )
+        }
+    }
+
+    private func bestStorageMessage(description: String, fallback: String) -> String {
+        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedDescription.isEmpty, trimmedDescription != "unknown" {
+            return trimmedDescription
+        }
+
+        let trimmedFallback = fallback.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedFallback.isEmpty, trimmedFallback != "unknown" {
+            return trimmedFallback
+        }
+
+        return "No additional details provided."
     }
 }
