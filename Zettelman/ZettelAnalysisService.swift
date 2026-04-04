@@ -19,7 +19,7 @@ final class ZettelAnalysisService {
             do {
                 let data = try await s3Service.downloadData(
                     for: analysisKey,
-                    operation: "downloading Lambda analysis output"
+                    operation: String(localized: "storage.operation.download.analysis.output")
                 )
                 let payload = try decodePayload(from: data)
 
@@ -41,7 +41,7 @@ final class ZettelAnalysisService {
         }
 
         throw ZettelmanError.unsupportedResponse(
-            "Timed out waiting for Lambda analysis output in S3. Expected key: \(analysisKey)"
+            String(format: String(localized: "analysis.timeout.detail"), analysisKey)
         )
     }
 
@@ -136,7 +136,7 @@ final class ZettelAnalysisService {
 extension String {
     func normalizedWhat() -> String {
         let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return "Review appointment" }
+        guard !trimmed.isEmpty else { return String(localized: "appointment.what.default") }
 
         let words = trimmed.split(whereSeparator: \.isWhitespace)
         if words.count <= 5 {

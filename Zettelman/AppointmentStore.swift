@@ -75,7 +75,7 @@ final class AppointmentStore: ObservableObject {
             reminderEnabled: true,
             addToCalendar: true,
             what: analysis.what,
-            location: analysis.location.isEmpty ? "Unknown location" : analysis.location,
+            location: analysis.location.isEmpty ? String(localized: "draft.location.unknown") : analysis.location,
             withWhom: analysis.withWhom,
             uploadedZettel: uploadedZettel,
             previewImageData: previewData,
@@ -212,22 +212,22 @@ final class AppointmentStore: ObservableObject {
 
         switch calendarResult {
         case .added(_):
-            message = "Appointment saved and added to iPhone Calendar."
+            message = String(localized: "save.confirm.success.calendar")
             isSuccess = true
             requiresCalendarAccessPrompt = false
         case .disabled:
-            message = "Appointment saved. Calendar add is turned off."
+            message = String(localized: "save.confirm.disabled")
             isSuccess = true
             requiresCalendarAccessPrompt = false
         case .permissionDenied:
-            message = "Appointment saved, but calendar access is blocked. Enable Full Access in Settings."
+            message = String(localized: "save.confirm.permission.denied")
             isSuccess = false
             requiresCalendarAccessPrompt = true
         case let .failed(details):
             if details.isEmpty {
-                message = "Appointment saved, but it could not be added to Calendar. Open Settings and allow Full Access."
+                message = String(localized: "save.confirm.failed.empty")
             } else {
-                message = "Appointment saved, but Calendar add failed. Open Settings and allow Full Access."
+                message = String(localized: "save.confirm.failed")
             }
             isSuccess = false
             requiresCalendarAccessPrompt = true
@@ -308,7 +308,7 @@ final class AppointmentReminderService {
         guard reminderDate > Date() else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "Appointment tomorrow"
+        content.title = String(localized: "notification.title")
         content.body = reminderBody(for: appointment)
         content.sound = .default
 
@@ -325,12 +325,12 @@ final class AppointmentReminderService {
     private func reminderBody(for appointment: Appointment) -> String {
         let withWhomPart: String
         if let withWhom = appointment.withWhom, !withWhom.isEmpty {
-            withWhomPart = " with \(withWhom)"
+            withWhomPart = String(format: String(localized: "notification.body.with.whom"), withWhom)
         } else {
             withWhomPart = ""
         }
 
-        return "\(appointment.what) at \(appointment.location)\(withWhomPart)."
+        return String(format: String(localized: "notification.body.template"), appointment.what, appointment.location, withWhomPart)
     }
 
     private func ensureNotificationPermission(requestAuthorizationIfNeeded: Bool) async -> Bool {
@@ -446,7 +446,7 @@ final class AppointmentCalendarService {
         event.alarms = [EKAlarm(relativeOffset: -reminderLeadTime)]
 
         if let withWhom = appointment.withWhom, !withWhom.isEmpty {
-            event.notes = "With: \(withWhom)"
+            event.notes = String(format: String(localized: "calendar.event.notes.with"), withWhom)
         }
 
         do {
@@ -532,9 +532,9 @@ final class AppointmentCalendarService {
         var errorDescription: String? {
             switch self {
             case .noWritableCalendar:
-                return "No writable calendar is available on this iPhone."
+                return String(localized: "calendar.error.no.writable")
             case .missingEventIdentifier:
-                return "Calendar event was created, but its identifier could not be stored."
+                return String(localized: "calendar.error.missing.id")
             }
         }
     }

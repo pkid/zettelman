@@ -145,13 +145,13 @@ enum ZettelmanError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidImage:
-            return "The selected image could not be prepared for upload."
+            return String(localized: "error.invalid.image")
         case .analysisTimeout:
-            return "Timed out waiting for Lambda analysis output in S3."
+            return String(localized: "error.timeout")
         case .invalidAnalysisResponse:
-            return "The Lambda response could not be parsed."
+            return String(localized: "error.invalid.response")
         case .uploadFailed:
-            return "Uploading the zettel failed."
+            return String(localized: "error.upload.failed")
         case let .unsupportedResponse(message):
             return message
         }

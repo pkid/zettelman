@@ -36,11 +36,11 @@ struct AddAppointmentView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 analyzeButtonBar
             }
-            .navigationTitle("New Appointment")
+            .navigationTitle("appointment.new.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
+                    Button("common.close") {
                         dismiss()
                     }
                     .disabled(isAnalyzing)
@@ -68,8 +68,8 @@ struct AddAppointmentView: View {
                 }
             }
         }
-        .alert("Add Appointment", isPresented: $showingAlert) {
-            Button("OK", role: .cancel) { }
+        .alert("appointment.add.alert.title", isPresented: $showingAlert) {
+            Button("common.ok", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
@@ -77,7 +77,7 @@ struct AddAppointmentView: View {
 
     private var heroCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Capture a zettel")
+            Text("appointment.capture.title")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundStyle(heroTitleColor)
 
@@ -97,7 +97,7 @@ struct AddAppointmentView: View {
                             VStack(spacing: 12) {
                                 Image(systemName: "camera.viewfinder")
                                     .font(.system(size: 36, weight: .medium))
-                                Text("No zettel selected yet")
+                                Text("appointment.capture.no.zettel")
                                     .font(.headline)
                             }
                             .foregroundStyle(heroPlaceholderAccentColor)
@@ -115,11 +115,11 @@ struct AddAppointmentView: View {
     private var captureControls: some View {
         VStack(spacing: 12) {
             Button(action: { showingCamera = true }) {
-                label(title: "Take Picture", icon: "camera")
+                label(title: String(localized: "appointment.capture.take.picture"), icon: "camera")
             }
 
             Button(action: { showingPhotoPicker = true }) {
-                label(title: "Choose from Photos", icon: "photo.on.rectangle")
+                label(title: String(localized: "appointment.capture.choose.photos"), icon: "photo.on.rectangle")
             }
         }
     }
@@ -134,7 +134,7 @@ struct AddAppointmentView: View {
                     Image(systemName: "wand.and.stars")
                 }
 
-                Text(isAnalyzing ? "Uploading and analyzing..." : "Analyze Zettel")
+                Text(isAnalyzing ? "appointment.analyzing" : "appointment.analyze.button")
                     .fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)

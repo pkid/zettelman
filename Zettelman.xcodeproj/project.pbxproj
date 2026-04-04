@@ -28,6 +28,7 @@
 		F41971E5D1C271F06332DCF3 /* ZettelmanApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2002D2C2C4DB5B4C9ACDFB89 /* ZettelmanApp.swift */; };
 		F6F7C401D9EA1F599C8D2398 /* AppointmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 976DCEB1BD6CB3C94677808B /* AppointmentDetailView.swift */; };
 		F94926469DDE9D7A01EED9A7 /* ZettelS3Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1FFD97A76332CA9BC74CFB /* ZettelS3Service.swift */; };
+		FABC123456789ABCDEF01235 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = FABC123456789ABCDEF01234 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +70,7 @@
 		DED10117073804AF89C6750B /* ZettelAnalysisService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ZettelAnalysisService.swift; sourceTree = "<group>"; };
 		E071023152E10ABC0A914D26 /* amplifyconfiguration.json */ = {isa = PBXFileReference; includeInIndex = 1; path = amplifyconfiguration.json; sourceTree = "<group>"; };
 		E97E5D1C3A39C75A05F0575A /* S3ZettelImageView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = S3ZettelImageView.swift; sourceTree = "<group>"; };
+		FABC123456789ABCDEF01234 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -151,6 +153,7 @@
 				2002D2C2C4DB5B4C9ACDFB89 /* ZettelmanApp.swift */,
 				414DFB15DBBD1B1BBFCD4EE2 /* Assets.xcassets */,
 				E071023152E10ABC0A914D26 /* amplifyconfiguration.json */,
+				FABC123456789ABCDEF01234 /* Localizable.xcstrings */,
 			);
 			name = Zettelman;
 			path = Zettelman;
@@ -214,6 +217,7 @@
 				en,
 				Base,
 				"zh-Hans",
+				de,
 			);
 			mainGroup = 48DFC8AB2E45109A002EB4C0;
 			minimizedProjectReferenceProxies = 1;
@@ -237,6 +241,7 @@
 			files = (
 				07FE019D7B5E59F3487564A9 /* Assets.xcassets in Resources */,
 				C9AC25332B23F52408EF915E /* amplifyconfiguration.json in Resources */,
+				FABC123456789ABCDEF01235 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

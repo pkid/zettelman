@@ -54,7 +54,7 @@ final class CognitoAuthManager: ObservableObject {
             let result = try await Amplify.Auth.signIn(username: email, password: password)
             guard result.isSignedIn else {
                 authState = .signedOut
-                return .failure(AuthError.unknown("Additional sign-in steps are required"))
+                return .failure(AuthError.unknown(String(localized: "auth.error.additional.steps")))
             }
 
             await checkAuthStatus()
@@ -171,7 +171,7 @@ final class CognitoAuthManager: ObservableObject {
             return NSError(
                 domain: "Zettelman.Auth",
                 code: 4,
-                userInfo: [NSLocalizedDescriptionKey: message.isEmpty ? "Authentication failed. Please try again." : message]
+                userInfo: [NSLocalizedDescriptionKey: message.isEmpty ? String(localized: "auth.error.failed.tryagain") : message]
             )
         default:
             return error
@@ -183,7 +183,7 @@ final class CognitoAuthManager: ObservableObject {
         if !trimmedDescription.isEmpty, trimmedDescription != "unknown" {
             if trimmedDescription.localizedCaseInsensitiveContains("UsernameExistsException")
                 || trimmedDescription.localizedCaseInsensitiveContains("already exists") {
-                return "An account with this email already exists. Please sign in instead."
+                return String(localized: "auth.error.account.exists")
             }
 
             return trimmedDescription
@@ -194,6 +194,6 @@ final class CognitoAuthManager: ObservableObject {
             return trimmedFallback
         }
 
-        return "Authentication failed. Please check your input and try again."
+        return String(localized: "auth.error.failed.checkinput")
     }
 }

@@ -12,8 +12,7 @@ struct AppointmentDetailView: View {
     @State private var showingDeleteConfirmation = false
     @State private var deleteErrorMessage: String?
     @State private var showingDeleteError = false
-
-    private let detailImageHeight: CGFloat = 320
+    @State private var showingImagePreview = false
 
     init(appointment: Appointment, onDelete: (() async throws -> Void)? = nil) {
         self.appointment = appointment
@@ -28,14 +27,16 @@ struct AppointmentDetailView: View {
                 S3ZettelImageView(
                     key: appointment.uploadedZettel.key,
                     cornerRadius: 28,
-                    contentMode: .fill
+                    contentMode: .fit
                 )
                 .frame(maxWidth: .infinity)
-                .frame(height: detailImageHeight)
+                .frame(minHeight: 360)
                 .padding(.top, 4)
-                .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                .allowsHitTesting(false)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    showingImagePreview = true
+                }
             }
             .padding(20)
         }
@@ -47,7 +48,7 @@ struct AppointmentDetailView: View {
             )
             .ignoresSafeArea()
         )
-        .navigationTitle("Appointment")
+        .navigationTitle("appointment.detail.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
@@ -63,27 +64,51 @@ struct AppointmentDetailView: View {
                 }
             }
         }
-        .confirmationDialog("Delete this appointment?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
-            Button("Delete Appointment", role: .destructive) {
+        .confirmationDialog("appointment.detail.delete.confirm.title", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
+            Button("appointment.detail.delete.button", role: .destructive) {
                 deleteAppointment()
             }
-            Button("Cancel", role: .cancel) { }
+            Button("common.cancel", role: .cancel) { }
         } message: {
-            Text("This removes it from your appointments folder in S3.")
+            Text("appointment.detail.delete.message")
         }
-        .alert("Delete Appointment", isPresented: $showingDeleteError) {
-            Button("OK", role: .cancel) { }
+        .alert("appointment.detail.delete.alert.title", isPresented: $showingDeleteError) {
+            Button("common.ok", role: .cancel) { }
         } message: {
-            Text(deleteErrorMessage ?? "Couldn't delete this appointment.")
+            Text(deleteErrorMessage ?? String(localized: "appointment.detail.delete.error"))
+        }
+        .fullScreenCover(isPresented: $showingImagePreview) {
+            ZStack(alignment: .topTrailing) {
+                Color.black.ignoresSafeArea()
+
+                S3ZettelImageView(
+                    key: appointment.uploadedZettel.key,
+                    cornerRadius: 0,
+                    contentMode: .fit
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 24)
+
+                Button {
+                    showingImagePreview = false
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                }
+                .padding(.top, 16)
+                .padding(.trailing, 16)
+            }
         }
     }
 
     private var detailsCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            detailRow(title: "Date and time", value: formattedDate(appointment.scheduledAt))
-            detailRow(title: "What", value: appointment.what)
+            detailRow(title: String(localized: "appointment.detail.datetime"), value: formattedDate(appointment.scheduledAt))
+            detailRow(title: String(localized: "appointment.detail.what"), value: appointment.what)
             if let withWhom = appointment.withWhom, !withWhom.isEmpty {
-                detailRow(title: "With whom", value: withWhom)
+                detailRow(title: String(localized: "appointment.detail.withwhom"), value: withWhom)
             }
             locationRow
         }
@@ -110,7 +135,7 @@ struct AppointmentDetailView: View {
 
     private var locationRow: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Where")
+            Text("appointment.detail.location")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 

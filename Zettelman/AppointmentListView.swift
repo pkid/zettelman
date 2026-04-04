@@ -42,7 +42,7 @@ struct AppointmentListView: View {
                 addButton
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.88), value: store.saveConfirmation)
-            .navigationTitle("Appointments")
+            .navigationTitle("appointments.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -53,12 +53,12 @@ struct AppointmentListView: View {
                 }
 
                 ToolbarItem(placement: .principal) {
-                    Text("Appointments")
+                    Text("appointments.title")
                         .font(.headline)
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Sign Out") {
+                    Button("appointments.sign.out") {
                         Task {
                             store.reset()
                             await authManager.signOut()
@@ -67,20 +67,19 @@ struct AppointmentListView: View {
                 }
             }
         }
-        .alert("Signed In Account", isPresented: $showingAccountPopup) {
-            Button("OK", role: .cancel) { }
+        .alert("appointments.signed.in.account", isPresented: $showingAccountPopup) {
+            Button("common.ok", role: .cancel) { }
         } message: {
-            Text(authManager.userEmail ?? "Unknown user")
+            Text(authManager.userEmail ?? String(localized: "appointments.unknown.user"))
         }
         .sheet(isPresented: $showingComposer) {
             AddAppointmentView(store: store)
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
+        .overlay(alignment: .center) {
             if store.saveConfirmation != nil {
                 saveConfirmationBanner
                     .padding(.horizontal, 20)
-                    .padding(.top, 6)
-                    .padding(.bottom, 4)
+                    .frame(maxWidth: 440)
             }
         }
         .task {
@@ -101,7 +100,7 @@ struct AppointmentListView: View {
     private var loadingState: some View {
         VStack(spacing: 16) {
             ProgressView()
-            Text("Loading appointments from S3...")
+            Text("appointments.loading")
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -114,11 +113,11 @@ struct AppointmentListView: View {
                 .font(.system(size: 44))
                 .foregroundStyle(emptyIconColor)
 
-            Text("No appointments saved yet")
+            Text("appointments.empty.title")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(emptyTitleColor)
 
-            Text("Add your first zettel, let Lambda extract the appointment, and confirm the details.")
+            Text("appointments.empty.subtitle")
                 .font(.subheadline)
                 .foregroundStyle(emptySubtitleColor)
                 .multilineTextAlignment(.center)
@@ -147,7 +146,7 @@ struct AppointmentListView: View {
 
     private var addButton: some View {
         Button(action: { showingComposer = true }) {
-            Label("Add Zettel", systemImage: "plus")
+            Label("appointments.add.button", systemImage: "plus")
                 .font(.headline)
                 .padding(.horizontal, 20)
                 .frame(height: 56)
@@ -177,7 +176,7 @@ struct AppointmentListView: View {
 
                 HStack(spacing: 10) {
                     if confirmation.requiresCalendarAccessPrompt {
-                        Button("Open Settings") {
+                        Button("common.open.settings") {
                             openCalendarSettings()
                         }
                         .font(.footnote.weight(.semibold))
@@ -190,7 +189,7 @@ struct AppointmentListView: View {
 
                     Spacer(minLength: 0)
 
-                    Button("Dismiss") {
+                    Button("common.dismiss") {
                         withAnimation {
                             store.clearSaveConfirmation()
                         }
@@ -210,7 +209,7 @@ struct AppointmentListView: View {
                     .stroke(confirmationBorderColor(isSuccess: confirmation.isSuccess), lineWidth: 1)
             )
             .shadow(color: .black.opacity(colorScheme == .dark ? 0.24 : 0.14), radius: 8, y: 4)
-            .transition(.move(edge: .top).combined(with: .opacity))
+            .transition(.scale(scale: 0.96).combined(with: .opacity))
         }
     }
 
@@ -284,9 +283,14 @@ private struct AppointmentCardRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            S3ZettelImageView(key: appointment.uploadedZettel.key, cornerRadius: 16)
-                .aspectRatio(1, contentMode: .fill)
+            S3ZettelImageView(
+                key: appointment.uploadedZettel.key,
+                cornerRadius: 16,
+                contentMode: .fit
+            )
+                .aspectRatio(1, contentMode: .fit)
                 .frame(width: thumbnailSide, height: thumbnailSide)
+                .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .clipped()
 
             VStack(alignment: .leading, spacing: 6) {

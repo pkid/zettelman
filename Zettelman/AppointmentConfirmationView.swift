@@ -20,7 +20,27 @@ struct AppointmentConfirmationView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Original Zettel") {
+                Section("appointment.confirm.section") {
+                    DatePicker("appointment.confirm.datetime", selection: $editedDraft.scheduledAt)
+
+                    Toggle("appointment.confirm.reminder", isOn: $editedDraft.reminderEnabled)
+                    Toggle("appointment.confirm.calendar.toggle", isOn: $editedDraft.addToCalendar)
+
+                    TextField("appointment.confirm.what.field", text: $editedDraft.what)
+                        .textInputAutocapitalization(.sentences)
+
+                    TextField("appointment.confirm.location.field", text: $editedDraft.location)
+                        .textInputAutocapitalization(.words)
+
+                    TextField("appointment.confirm.withwhom.field", text: $editedDraft.withWhom)
+                        .textInputAutocapitalization(.words)
+
+                    Text(String(format: String(localized: "appointment.confirm.wordcount"), wordCount(of: editedDraft.what)))
+                        .font(.caption)
+                        .foregroundStyle(wordCount(of: editedDraft.what) > 5 ? .red : .secondary)
+                }
+
+                Section("appointment.confirm.original.zettel") {
                     if let image = previewImage {
                         Image(uiImage: image)
                             .resizable()
@@ -29,49 +49,28 @@ struct AppointmentConfirmationView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                             .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
                     }
-
-                }
-
-                Section("Confirm Appointment") {
-                    DatePicker("Date and time", selection: $editedDraft.scheduledAt)
-
-                    Toggle("Reminder 1 day before", isOn: $editedDraft.reminderEnabled)
-                    Toggle("Add to iPhone Calendar (1 day reminder)", isOn: $editedDraft.addToCalendar)
-
-                    TextField("What", text: $editedDraft.what)
-                        .textInputAutocapitalization(.sentences)
-
-                    TextField("Where", text: $editedDraft.location)
-                        .textInputAutocapitalization(.words)
-
-                    TextField("With whom (optional)", text: $editedDraft.withWhom)
-                        .textInputAutocapitalization(.words)
-
-                    Text("\(wordCount(of: editedDraft.what))/5 words")
-                        .font(.caption)
-                        .foregroundStyle(wordCount(of: editedDraft.what) > 5 ? .red : .secondary)
                 }
             }
-            .navigationTitle("Confirm")
+            .navigationTitle("appointment.confirm.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("common.cancel") {
                         dismiss()
                     }
                     .disabled(isSaving)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isSaving ? "Saving..." : "Save") {
+                    Button(isSaving ? "appointment.confirm.saving" : "appointment.confirm.save") {
                         save()
                     }
                     .disabled(isSaving)
                 }
             }
         }
-        .alert("Save Appointment", isPresented: $showingAlert) {
-            Button("OK", role: .cancel) { }
+        .alert("appointment.confirm.save.alert.title", isPresented: $showingAlert) {
+            Button("common.ok", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
@@ -87,19 +86,19 @@ struct AppointmentConfirmationView: View {
         let trimmedWhere = editedDraft.location.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmedWhat.isEmpty else {
-            alertMessage = "Enter a short description for the appointment."
+            alertMessage = String(localized: "appointment.confirm.save.error.what")
             showingAlert = true
             return
         }
 
         guard wordCount(of: trimmedWhat) <= 5 else {
-            alertMessage = "Keep the 'what' field to five words or fewer."
+            alertMessage = String(localized: "appointment.confirm.save.error.wordcount")
             showingAlert = true
             return
         }
 
         guard !trimmedWhere.isEmpty else {
-            alertMessage = "Enter the location before saving."
+            alertMessage = String(localized: "appointment.confirm.save.error.location")
             showingAlert = true
             return
         }

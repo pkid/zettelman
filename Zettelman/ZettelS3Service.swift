@@ -35,12 +35,12 @@ final class ZettelS3Service {
             _ = try await uploadTask.value
             return UploadedZettel(key: key, filename: filename, uploadedAt: Date())
         } catch {
-            throw normalizedStorageError(error, operation: "uploading the zettel image")
+            throw normalizedStorageError(error, operation: String(localized: "storage.operation.upload.zettel.image"))
         }
     }
 
     func downloadZettelData(for key: String) async throws -> Data {
-        try await downloadData(for: key, operation: "downloading the zettel")
+        try await downloadData(for: key, operation: String(localized: "storage.operation.download.zettel"))
     }
 
     func downloadData(for key: String, operation: String) async throws -> Data {
@@ -56,7 +56,7 @@ final class ZettelS3Service {
         do {
             return try await Amplify.Storage.getURL(path: .fromString(key), options: .init())
         } catch {
-            throw normalizedStorageError(error, operation: "getting the zettel link")
+            throw normalizedStorageError(error, operation: String(localized: "storage.operation.get.zettel.link"))
         }
     }
 
@@ -73,9 +73,9 @@ final class ZettelS3Service {
                 return []
             }
 
-            throw normalizedStorageError(storageError, operation: "loading appointments")
+            throw normalizedStorageError(storageError, operation: String(localized: "storage.operation.load.appointments"))
         } catch {
-            throw normalizedStorageError(error, operation: "loading appointments")
+            throw normalizedStorageError(error, operation: String(localized: "storage.operation.load.appointments"))
         }
     }
 
@@ -93,7 +93,7 @@ final class ZettelS3Service {
 
             _ = try await uploadTask.value
         } catch {
-            throw normalizedStorageError(error, operation: "saving appointments")
+            throw normalizedStorageError(error, operation: String(localized: "storage.operation.save.appointments"))
         }
     }
 
@@ -149,7 +149,7 @@ final class ZettelS3Service {
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 0,
-                userInfo: [NSLocalizedDescriptionKey: "S3 error while \(operation): \(error.localizedDescription)"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.generic"), operation, error.localizedDescription)]
             )
         }
 
@@ -158,55 +158,55 @@ final class ZettelS3Service {
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "S3 access denied while \(operation). Check the Cognito Identity Pool authenticated role permissions. (\(description))"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.access.denied"), operation, description)]
             )
         case .authError(let description, _, _):
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 2,
-                userInfo: [NSLocalizedDescriptionKey: "S3 auth failed while \(operation). Please sign out and sign in again. (\(description))"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.auth"), operation, description)]
             )
         case .configuration(let description, _, _):
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 3,
-                userInfo: [NSLocalizedDescriptionKey: "S3 configuration issue while \(operation). Verify bucket and region in amplifyconfiguration.json. (\(description))"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.configuration"), operation, description)]
             )
         case .httpStatusError(let statusCode, _, _):
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 4,
-                userInfo: [NSLocalizedDescriptionKey: "S3 returned HTTP \(statusCode) while \(operation)."]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.http.status"), statusCode, operation)]
             )
         case .keyNotFound:
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 5,
-                userInfo: [NSLocalizedDescriptionKey: "The requested S3 object was not found while \(operation)."]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.key.not.found"), operation)]
             )
         case .localFileNotFound(let description, _, _):
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 6,
-                userInfo: [NSLocalizedDescriptionKey: "Local file missing while \(operation). (\(description))"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.local.file.missing"), operation, description)]
             )
         case .service(let description, let recoverySuggestion, _):
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 7,
-                userInfo: [NSLocalizedDescriptionKey: "S3 service error while \(operation): \(bestStorageMessage(description: description, fallback: recoverySuggestion))"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.service"), operation, bestStorageMessage(description: description, fallback: recoverySuggestion))]
             )
         case .unknown(let description, _):
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 8,
-                userInfo: [NSLocalizedDescriptionKey: "Unexpected S3 error while \(operation): \(description)"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.unexpected"), operation, description)]
             )
         case .validation(_, let description, let recoverySuggestion, _):
             return NSError(
                 domain: "Zettelman.Storage",
                 code: 9,
-                userInfo: [NSLocalizedDescriptionKey: "Invalid storage request while \(operation): \(bestStorageMessage(description: description, fallback: recoverySuggestion))"]
+                userInfo: [NSLocalizedDescriptionKey: String(format: String(localized: "storage.error.invalid.request"), operation, bestStorageMessage(description: description, fallback: recoverySuggestion))]
             )
         }
     }
@@ -222,6 +222,6 @@ final class ZettelS3Service {
             return trimmedFallback
         }
 
-        return "No additional details provided."
+        return String(localized: "storage.error.no.details")
     }
 }

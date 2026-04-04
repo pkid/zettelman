@@ -43,7 +43,7 @@ struct S3ZettelImageView: View {
                     VStack(spacing: 8) {
                         Image(systemName: loadFailed ? "exclamationmark.triangle" : "doc.text.image")
                             .font(.title3)
-                        Text(loadFailed ? "Image unavailable" : "No image")
+                        Text(loadFailed ? "appointment.image.unavailable" : "appointment.image.no.image")
                             .font(.caption)
                     }
                     .foregroundStyle(.secondary)

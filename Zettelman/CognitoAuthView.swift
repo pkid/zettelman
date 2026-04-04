@@ -41,8 +41,8 @@ struct CognitoAuthView: View {
             .navigationTitle("")
             .navigationBarHidden(true)
         }
-        .alert("Authentication", isPresented: $showingAlert) {
-            Button("OK", role: .cancel) { }
+        .alert("auth.alert.title", isPresented: $showingAlert) {
+            Button("common.ok", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
@@ -54,7 +54,7 @@ struct CognitoAuthView: View {
                 .font(.system(size: 54, weight: .semibold))
                 .foregroundStyle(iconColor)
 
-            Text("Zettelman")
+            Text("auth.app.name")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
                 .foregroundStyle(titleColor)
 
@@ -69,7 +69,7 @@ struct CognitoAuthView: View {
     private var formCard: some View {
         VStack(spacing: 18) {
             inputField(
-                TextField("Email", text: $email)
+                TextField("auth.email", text: $email)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.emailAddress)
                     .autocorrectionDisabled()
@@ -78,14 +78,14 @@ struct CognitoAuthView: View {
             .disabled(isLoading)
 
             inputField(
-                SecureField(mode == .confirmResetPassword ? "New password" : "Password", text: $password)
+                SecureField(mode == .confirmResetPassword ? "auth.new.password" : "auth.password", text: $password)
                     .textContentType(nil)
             )
             .disabled(isLoading)
 
             if mode == .signUp || mode == .confirmResetPassword {
                 inputField(
-                    SecureField("Confirm password", text: $confirmPassword)
+                    SecureField("auth.confirm.password", text: $confirmPassword)
                         .textContentType(nil)
                 )
                 .disabled(isLoading)
@@ -93,7 +93,7 @@ struct CognitoAuthView: View {
 
             if mode == .confirmResetPassword {
                 inputField(
-                    TextField("Reset code", text: $confirmationCode)
+                    TextField("auth.reset.code", text: $confirmationCode)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .textContentType(nil)
@@ -129,14 +129,14 @@ struct CognitoAuthView: View {
         VStack(spacing: 12) {
             switch mode {
             case .signIn:
-                Button("Create an account") { mode = .signUp }
-                Button("Forgot password?") { mode = .resetPassword }
+                Button("auth.create.account") { mode = .signUp }
+                Button("auth.forgot.password") { mode = .resetPassword }
             case .signUp:
-                Button("Already have an account? Sign in") { mode = .signIn }
+                Button("auth.already.have.account") { mode = .signIn }
             case .resetPassword:
-                Button("Back to sign in") { mode = .signIn }
+                Button("auth.back.to.signin") { mode = .signIn }
             case .confirmResetPassword:
-                Button("Back to sign in") { mode = .signIn }
+                Button("auth.back.to.signin") { mode = .signIn }
             }
         }
         .font(.footnote)
@@ -146,26 +146,26 @@ struct CognitoAuthView: View {
     private var modeSubtitle: String {
         switch mode {
         case .signIn:
-            return "Sign in with Cognito, upload a note, and confirm the extracted appointment."
+            return String(localized: "auth.signin.subtitle")
         case .signUp:
-            return "Create a Cognito-backed account for zettel uploads and appointment extraction."
+            return String(localized: "auth.signup.subtitle")
         case .resetPassword:
-            return "Request a reset code from Cognito."
+            return String(localized: "auth.reset.subtitle")
         case .confirmResetPassword:
-            return "Enter the reset code and your new password."
+            return String(localized: "auth.confirm.reset.subtitle")
         }
     }
 
     private var primaryButtonTitle: String {
         switch mode {
         case .signIn:
-            return "Sign In"
+            return String(localized: "auth.signin.button")
         case .signUp:
-            return "Create Account"
+            return String(localized: "auth.signup.button")
         case .resetPassword:
-            return "Send Reset Code"
+            return String(localized: "auth.reset.button")
         case .confirmResetPassword:
-            return "Set New Password"
+            return String(localized: "auth.confirm.reset.button")
         }
     }
 
@@ -230,11 +230,11 @@ struct CognitoAuthView: View {
                 alertMessage = authManager.errorMessage ?? error.localizedDescription
                 showingAlert = true
             } else if mode == .signUp {
-                alertMessage = "Account created. If your Cognito pool uses manual approval, confirm the user before signing in."
+                alertMessage = String(localized: "auth.signup.success")
                 showingAlert = true
                 mode = .signIn
             } else if mode == .confirmResetPassword {
-                alertMessage = "Password updated. Sign in with the new password."
+                alertMessage = String(localized: "auth.confirm.reset.success")
                 showingAlert = true
                 mode = .signIn
             }
