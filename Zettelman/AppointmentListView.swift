@@ -1,11 +1,14 @@
 import SwiftUI
+import UIKit
 
 struct AppointmentListView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.openURL) private var openURL
     @EnvironmentObject private var authManager: CognitoAuthManager
     @StateObject private var store = AppointmentStore()
     @State private var showingComposer = false
     @State private var showingAccountPopup = false
+    @State private var confirmationDismissTask: Task<Void, Never>?
 
     var body: some View {
         NavigationStack {
@@ -38,6 +41,7 @@ struct AppointmentListView: View {
 
                 addButton
             }
+            .animation(.spring(response: 0.35, dampingFraction: 0.88), value: store.saveConfirmation)
             .navigationTitle("Appointments")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -71,11 +75,26 @@ struct AppointmentListView: View {
         .sheet(isPresented: $showingComposer) {
             AddAppointmentView(store: store)
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if store.saveConfirmation != nil {
+                saveConfirmationBanner
+                    .padding(.horizontal, 20)
+                    .padding(.top, 6)
+                    .padding(.bottom, 4)
+            }
+        }
         .task {
             await store.loadAppointments()
         }
         .refreshable {
             await store.loadAppointments(forceRefresh: true)
+        }
+        .onChange(of: store.saveConfirmation) { confirmation in
+            scheduleSaveConfirmationDismiss(for: confirmation)
+        }
+        .onDisappear {
+            confirmationDismissTask?.cancel()
+            confirmationDismissTask = nil
         }
     }
 
@@ -117,33 +136,8 @@ struct AppointmentListView: View {
                         try await store.deleteAppointment(appointment)
                     })
                 } label: {
-                    HStack(spacing: 14) {
-                        S3ZettelImageView(key: appointment.uploadedZettel.key, cornerRadius: 22)
-                            .frame(width: 110, height: 110)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(appointment.what)
-                                .font(.headline)
-                                .foregroundStyle(.primary)
-
-                            Label(appointment.scheduledAt.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar")
-                                .font(.subheadline)
-
-                            Label(appointment.location, systemImage: "mappin.and.ellipse")
-                                .font(.subheadline)
-                                .lineLimit(2)
-
-                            if let withWhom = appointment.withWhom, !withWhom.isEmpty {
-                                Label(withWhom, systemImage: "person.text.rectangle")
-                                    .font(.subheadline)
-                                    .lineLimit(1)
-                            }
-
-                        }
-
-                        Spacer(minLength: 0)
-                    }
-                    .padding(16)
+                    AppointmentCardRow(appointment: appointment)
+                    .padding(10)
                     .background(cardBackgroundColor, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                 }
                 .buttonStyle(.plain)
@@ -163,6 +157,61 @@ struct AppointmentListView: View {
                 .shadow(color: .black.opacity(0.15), radius: 12, y: 8)
         }
         .padding(20)
+    }
+
+    @ViewBuilder
+    private var saveConfirmationBanner: some View {
+        if let confirmation = store.saveConfirmation {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: confirmation.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(confirmation.isSuccess ? Color.green : Color.orange)
+
+                    Text(confirmation.message)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(uiColor: .label))
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                HStack(spacing: 10) {
+                    if confirmation.requiresCalendarAccessPrompt {
+                        Button("Open Settings") {
+                            openCalendarSettings()
+                        }
+                        .font(.footnote.weight(.semibold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
+                        .foregroundStyle(Color(uiColor: .label))
+                        .buttonStyle(.plain)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Button("Dismiss") {
+                        withAnimation {
+                            store.clearSaveConfirmation()
+                        }
+                    }
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Color(uiColor: .secondaryLabel))
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(uiColor: .secondarySystemBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(confirmationBorderColor(isSuccess: confirmation.isSuccess), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(colorScheme == .dark ? 0.24 : 0.14), radius: 8, y: 4)
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
     }
 
     private var backgroundGradientColors: [Color] {
@@ -193,4 +242,72 @@ struct AppointmentListView: View {
         colorScheme == .dark ? Color(red: 0.83, green: 0.66, blue: 0.42) : Color(red: 0.45, green: 0.34, blue: 0.22)
     }
 
+    private func confirmationBackgroundColor(isSuccess: Bool) -> Color {
+        let baseColor = isSuccess ? Color.green : Color.orange
+        return baseColor.opacity(colorScheme == .dark ? 0.28 : 0.2)
+    }
+
+    private func confirmationBorderColor(isSuccess: Bool) -> Color {
+        let baseColor = isSuccess ? Color.green : Color.orange
+        return baseColor.opacity(colorScheme == .dark ? 0.75 : 0.45)
+    }
+
+    private func scheduleSaveConfirmationDismiss(for confirmation: SaveConfirmation?) {
+        confirmationDismissTask?.cancel()
+        confirmationDismissTask = nil
+
+        guard let confirmation else { return }
+        guard confirmation.isSuccess else { return }
+
+        confirmationDismissTask = Task {
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                withAnimation {
+                    store.clearSaveConfirmation()
+                }
+            }
+        }
+    }
+
+    private func openCalendarSettings() {
+        guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(settingsURL)
+    }
+
+}
+
+private struct AppointmentCardRow: View {
+    let appointment: Appointment
+    private let thumbnailSide: CGFloat = 64
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            S3ZettelImageView(key: appointment.uploadedZettel.key, cornerRadius: 16)
+                .aspectRatio(1, contentMode: .fill)
+                .frame(width: thumbnailSide, height: thumbnailSide)
+                .clipped()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(appointment.what)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Label(appointment.scheduledAt.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar")
+                    .font(.subheadline)
+
+                Label(appointment.location, systemImage: "mappin.and.ellipse")
+                    .font(.subheadline)
+                    .lineLimit(2)
+
+                if let withWhom = appointment.withWhom, !withWhom.isEmpty {
+                    Label(withWhom, systemImage: "person.text.rectangle")
+                        .font(.subheadline)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
 }

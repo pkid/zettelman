@@ -405,6 +405,9 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Zettelman;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Zettelman uses the camera to capture appointment notes before sending them to Lambda for analysis.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Zettelman can save processed note images if you export or share them later.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Zettelman uses your photo library so you can upload an appointment note for analysis.";
@@ -451,6 +454,9 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Zettelman;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Zettelman uses the camera to capture appointment notes before sending them to Lambda for analysis.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Zettelman can save processed note images if you export or share them later.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Zettelman uses your photo library so you can upload an appointment note for analysis.";

@@ -35,7 +35,8 @@ struct AppointmentConfirmationView: View {
                 Section("Confirm Appointment") {
                     DatePicker("Date and time", selection: $editedDraft.scheduledAt)
 
-                    Toggle("Reminder 30 min before", isOn: $editedDraft.reminderEnabled)
+                    Toggle("Reminder 1 day before", isOn: $editedDraft.reminderEnabled)
+                    Toggle("Add to iPhone Calendar (1 day reminder)", isOn: $editedDraft.addToCalendar)
 
                     TextField("What", text: $editedDraft.what)
                         .textInputAutocapitalization(.sentences)

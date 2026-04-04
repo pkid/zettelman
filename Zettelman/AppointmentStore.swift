@@ -1,4 +1,5 @@
 import Foundation
+import EventKit
 import UIKit
 import UserNotifications
 
@@ -8,10 +9,12 @@ final class AppointmentStore: ObservableObject {
     @Published var isLoading = false
     @Published var isSaving = false
     @Published var errorMessage: String?
+    @Published var saveConfirmation: SaveConfirmation?
 
     private let s3Service: ZettelS3Service
     private let analysisService: ZettelAnalysisService
     private let reminderService: AppointmentReminderService
+    private let calendarService: AppointmentCalendarService
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private var hasLoaded = false
@@ -19,11 +22,13 @@ final class AppointmentStore: ObservableObject {
     init(
         s3Service: ZettelS3Service = ZettelS3Service(),
         analysisService: ZettelAnalysisService = ZettelAnalysisService(),
-        reminderService: AppointmentReminderService = AppointmentReminderService()
+        reminderService: AppointmentReminderService = AppointmentReminderService(),
+        calendarService: AppointmentCalendarService = AppointmentCalendarService()
     ) {
         self.s3Service = s3Service
         self.analysisService = analysisService
         self.reminderService = reminderService
+        self.calendarService = calendarService
 
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -68,6 +73,7 @@ final class AppointmentStore: ObservableObject {
         return AppointmentDraft(
             scheduledAt: analysis.detectedDateTime ?? Date(),
             reminderEnabled: true,
+            addToCalendar: true,
             what: analysis.what,
             location: analysis.location.isEmpty ? "Unknown location" : analysis.location,
             withWhom: analysis.withWhom,
@@ -82,9 +88,10 @@ final class AppointmentStore: ObservableObject {
         errorMessage = nil
         defer { isSaving = false }
 
-        let appointment = Appointment(
+        var appointment = Appointment(
             scheduledAt: draft.scheduledAt,
             reminderEnabled: draft.reminderEnabled,
+            addToCalendar: draft.addToCalendar,
             what: draft.what.trimmingCharacters(in: .whitespacesAndNewlines).normalizedWhat(),
             location: draft.location.trimmingCharacters(in: .whitespacesAndNewlines),
             withWhom: draft.withWhom.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
@@ -97,7 +104,14 @@ final class AppointmentStore: ObservableObject {
         await reminderService.scheduleReminder(for: appointment, requestAuthorizationIfNeeded: true)
 
         do {
+            let calendarResult = await calendarService.addEventIfNeeded(for: appointment, requestAuthorizationIfNeeded: true)
+            if case let .added(eventIdentifier) = calendarResult {
+                appointment.calendarEventIdentifier = eventIdentifier
+                replaceAppointment(appointment)
+            }
+
             try await s3Service.saveAppointmentsManifest(appointments)
+            publishSaveConfirmation(for: calendarResult)
         } catch {
             errorMessage = error.localizedDescription
             throw error
@@ -117,6 +131,7 @@ final class AppointmentStore: ObservableObject {
 
         do {
             try await s3Service.saveAppointmentsManifest(appointments)
+            await calendarService.removeEventIfNeeded(for: removedAppointment)
         } catch {
             appointments.insert(removedAppointment, at: min(index, appointments.count))
             appointments = sort(appointments)
@@ -130,6 +145,7 @@ final class AppointmentStore: ObservableObject {
     func reset() {
         appointments = []
         errorMessage = nil
+        saveConfirmation = nil
         isLoading = false
         isSaving = false
         hasLoaded = false
@@ -152,6 +168,13 @@ final class AppointmentStore: ObservableObject {
 
             return lhs.scheduledAt < rhs.scheduledAt
         }
+    }
+
+    private func replaceAppointment(_ updatedAppointment: Appointment) {
+        guard let index = appointments.firstIndex(where: { $0.id == updatedAppointment.id }) else { return }
+        appointments[index] = updatedAppointment
+        appointments = sort(appointments)
+        persistLocally()
     }
 
     private func persistLocally() {
@@ -177,6 +200,52 @@ final class AppointmentStore: ObservableObject {
 
         return documentsURL.appendingPathComponent("appointments_cache.json")
     }
+
+    func clearSaveConfirmation() {
+        saveConfirmation = nil
+    }
+
+    private func publishSaveConfirmation(for calendarResult: AppointmentCalendarService.Result) {
+        let message: String
+        let isSuccess: Bool
+        let requiresCalendarAccessPrompt: Bool
+
+        switch calendarResult {
+        case .added(_):
+            message = "Appointment saved and added to iPhone Calendar."
+            isSuccess = true
+            requiresCalendarAccessPrompt = false
+        case .disabled:
+            message = "Appointment saved. Calendar add is turned off."
+            isSuccess = true
+            requiresCalendarAccessPrompt = false
+        case .permissionDenied:
+            message = "Appointment saved, but calendar access is blocked. Enable Full Access in Settings."
+            isSuccess = false
+            requiresCalendarAccessPrompt = true
+        case let .failed(details):
+            if details.isEmpty {
+                message = "Appointment saved, but it could not be added to Calendar. Open Settings and allow Full Access."
+            } else {
+                message = "Appointment saved, but Calendar add failed. Open Settings and allow Full Access."
+            }
+            isSuccess = false
+            requiresCalendarAccessPrompt = true
+        }
+
+        saveConfirmation = SaveConfirmation(
+            message: message,
+            isSuccess: isSuccess,
+            requiresCalendarAccessPrompt: requiresCalendarAccessPrompt
+        )
+    }
+}
+
+struct SaveConfirmation: Identifiable, Equatable {
+    let id = UUID()
+    let message: String
+    let isSuccess: Bool
+    let requiresCalendarAccessPrompt: Bool
 }
 
 private extension String {
@@ -188,7 +257,7 @@ private extension String {
 
 final class AppointmentReminderService {
     private let notificationCenter: UNUserNotificationCenter
-    private let reminderLeadTime: TimeInterval = 30 * 60
+    private let reminderLeadTime: TimeInterval = 24 * 60 * 60
     private let identifierPrefix = "appointment-reminder-"
 
     init(notificationCenter: UNUserNotificationCenter = .current()) {
@@ -239,7 +308,7 @@ final class AppointmentReminderService {
         guard reminderDate > Date() else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "Appointment in 30 minutes"
+        content.title = "Appointment tomorrow"
         content.body = reminderBody(for: appointment)
         content.sound = .default
 
@@ -322,5 +391,151 @@ final class AppointmentReminderService {
 
     private func reminderIdentifier(for appointmentID: UUID) -> String {
         identifierPrefix + appointmentID.uuidString
+    }
+}
+
+final class AppointmentCalendarService {
+    enum Result {
+        case disabled
+        case added(String)
+        case permissionDenied
+        case failed(message: String)
+    }
+
+    private let eventStore: EKEventStore
+    private let defaultEventDuration: TimeInterval = 60 * 60
+    private let reminderLeadTime: TimeInterval = 24 * 60 * 60
+
+    init(eventStore: EKEventStore = EKEventStore()) {
+        self.eventStore = eventStore
+    }
+
+    func addEventIfNeeded(for appointment: Appointment, requestAuthorizationIfNeeded: Bool) async -> Result {
+        guard appointment.addToCalendar else { return .disabled }
+        guard await ensureCalendarPermission(requestAuthorizationIfNeeded: requestAuthorizationIfNeeded) else {
+            return .permissionDenied
+        }
+
+        do {
+            let eventIdentifier = try createEvent(for: appointment)
+            return .added(eventIdentifier)
+        } catch {
+            return .failed(message: error.localizedDescription)
+        }
+    }
+
+    func removeEventIfNeeded(for appointment: Appointment) async {
+        guard let eventIdentifier = appointment.calendarEventIdentifier, !eventIdentifier.isEmpty else { return }
+        guard await ensureCalendarPermission(requestAuthorizationIfNeeded: false) else { return }
+
+        guard let event = eventStore.event(withIdentifier: eventIdentifier) else { return }
+        try? eventStore.remove(event, span: .thisEvent, commit: true)
+    }
+
+    private func createEvent(for appointment: Appointment) throws -> String {
+        guard let calendar = preferredWritableCalendar() else {
+            throw CalendarSaveError.noWritableCalendar
+        }
+
+        let event = EKEvent(eventStore: eventStore)
+        event.calendar = calendar
+        event.title = appointment.what
+        event.location = appointment.location
+        event.startDate = appointment.scheduledAt
+        event.endDate = appointment.scheduledAt.addingTimeInterval(defaultEventDuration)
+        event.alarms = [EKAlarm(relativeOffset: -reminderLeadTime)]
+
+        if let withWhom = appointment.withWhom, !withWhom.isEmpty {
+            event.notes = "With: \(withWhom)"
+        }
+
+        do {
+            try eventStore.save(event, span: .thisEvent, commit: true)
+        } catch let error as NSError where error.domain == EKErrorDomain && error.code == EKError.calendarReadOnly.rawValue {
+            guard let fallbackCalendar = alternateWritableCalendar(excluding: calendar.calendarIdentifier) else {
+                throw error
+            }
+
+            event.calendar = fallbackCalendar
+            try eventStore.save(event, span: .thisEvent, commit: true)
+        }
+
+        guard let eventIdentifier = event.eventIdentifier else {
+            throw CalendarSaveError.missingEventIdentifier
+        }
+
+        return eventIdentifier
+    }
+
+    private func preferredWritableCalendar() -> EKCalendar? {
+        if let defaultCalendar = eventStore.defaultCalendarForNewEvents,
+           defaultCalendar.allowsContentModifications {
+            return defaultCalendar
+        }
+
+        let writableCalendars = writableEventCalendars()
+        if let localCalendar = writableCalendars.first(where: { $0.source.sourceType == .local }) {
+            return localCalendar
+        }
+
+        return writableCalendars.first
+    }
+
+    private func alternateWritableCalendar(excluding calendarIdentifier: String) -> EKCalendar? {
+        writableEventCalendars().first { $0.calendarIdentifier != calendarIdentifier }
+    }
+
+    private func writableEventCalendars() -> [EKCalendar] {
+        eventStore
+            .calendars(for: .event)
+            .filter(\.allowsContentModifications)
+    }
+
+    private func ensureCalendarPermission(requestAuthorizationIfNeeded: Bool) async -> Bool {
+        let status = EKEventStore.authorizationStatus(for: .event)
+
+        switch status {
+        case .authorized:
+            return true
+        case .fullAccess, .writeOnly:
+            return true
+        case .notDetermined:
+            guard requestAuthorizationIfNeeded else { return false }
+            return await requestCalendarAccess()
+        case .denied, .restricted:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+
+    private func requestCalendarAccess() async -> Bool {
+        if #available(iOS 17.0, *) {
+            return await withCheckedContinuation { continuation in
+                eventStore.requestWriteOnlyAccessToEvents { granted, _ in
+                    continuation.resume(returning: granted)
+                }
+            }
+        }
+
+        return await withCheckedContinuation { continuation in
+            eventStore.requestAccess(to: .event) { granted, _ in
+                continuation.resume(returning: granted)
+            }
+        }
+    }
+
+    private enum CalendarSaveError: LocalizedError {
+        case noWritableCalendar
+        case missingEventIdentifier
+
+        var errorDescription: String? {
+            switch self {
+            case .noWritableCalendar:
+                return "No writable calendar is available on this iPhone."
+            case .missingEventIdentifier:
+                return "Calendar event was created, but its identifier could not be stored."
+            }
+        }
     }
 }

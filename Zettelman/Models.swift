@@ -10,6 +10,8 @@ struct Appointment: Identifiable, Codable, Hashable {
     let id: UUID
     var scheduledAt: Date
     var reminderEnabled: Bool
+    var addToCalendar: Bool
+    var calendarEventIdentifier: String?
     var what: String
     var location: String
     var withWhom: String?
@@ -20,6 +22,8 @@ struct Appointment: Identifiable, Codable, Hashable {
         id: UUID = UUID(),
         scheduledAt: Date,
         reminderEnabled: Bool = true,
+        addToCalendar: Bool = true,
+        calendarEventIdentifier: String? = nil,
         what: String,
         location: String,
         withWhom: String? = nil,
@@ -29,6 +33,8 @@ struct Appointment: Identifiable, Codable, Hashable {
         self.id = id
         self.scheduledAt = scheduledAt
         self.reminderEnabled = reminderEnabled
+        self.addToCalendar = addToCalendar
+        self.calendarEventIdentifier = calendarEventIdentifier
         self.what = what
         self.location = location
         self.withWhom = withWhom
@@ -40,6 +46,8 @@ struct Appointment: Identifiable, Codable, Hashable {
         case id
         case scheduledAt
         case reminderEnabled
+        case addToCalendar
+        case calendarEventIdentifier
         case what
         case location
         case withWhom
@@ -52,6 +60,8 @@ struct Appointment: Identifiable, Codable, Hashable {
         id = try container.decode(UUID.self, forKey: .id)
         scheduledAt = try container.decode(Date.self, forKey: .scheduledAt)
         reminderEnabled = try container.decodeIfPresent(Bool.self, forKey: .reminderEnabled) ?? true
+        addToCalendar = try container.decodeIfPresent(Bool.self, forKey: .addToCalendar) ?? true
+        calendarEventIdentifier = try container.decodeIfPresent(String.self, forKey: .calendarEventIdentifier)
         what = try container.decode(String.self, forKey: .what)
         location = try container.decode(String.self, forKey: .location)
         withWhom = try container.decodeIfPresent(String.self, forKey: .withWhom)
@@ -64,6 +74,8 @@ struct Appointment: Identifiable, Codable, Hashable {
         try container.encode(id, forKey: .id)
         try container.encode(scheduledAt, forKey: .scheduledAt)
         try container.encode(reminderEnabled, forKey: .reminderEnabled)
+        try container.encode(addToCalendar, forKey: .addToCalendar)
+        try container.encodeIfPresent(calendarEventIdentifier, forKey: .calendarEventIdentifier)
         try container.encode(what, forKey: .what)
         try container.encode(location, forKey: .location)
         try container.encodeIfPresent(withWhom, forKey: .withWhom)
@@ -76,6 +88,7 @@ struct AppointmentDraft: Identifiable, Hashable {
     let id: UUID
     var scheduledAt: Date
     var reminderEnabled: Bool
+    var addToCalendar: Bool
     var what: String
     var location: String
     var withWhom: String
@@ -87,6 +100,7 @@ struct AppointmentDraft: Identifiable, Hashable {
         id: UUID = UUID(),
         scheduledAt: Date,
         reminderEnabled: Bool = true,
+        addToCalendar: Bool = true,
         what: String,
         location: String,
         withWhom: String,
@@ -97,6 +111,7 @@ struct AppointmentDraft: Identifiable, Hashable {
         self.id = id
         self.scheduledAt = scheduledAt
         self.reminderEnabled = reminderEnabled
+        self.addToCalendar = addToCalendar
         self.what = what
         self.location = location
         self.withWhom = withWhom

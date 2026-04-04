@@ -8,6 +8,7 @@ private final class ZettelImageCache {
 struct S3ZettelImageView: View {
     let key: String
     let cornerRadius: CGFloat
+    let contentMode: ContentMode
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var image: UIImage?
@@ -16,12 +17,18 @@ struct S3ZettelImageView: View {
 
     private let service = ZettelS3Service()
 
+    init(key: String, cornerRadius: CGFloat, contentMode: ContentMode = .fill) {
+        self.key = key
+        self.cornerRadius = cornerRadius
+        self.contentMode = contentMode
+    }
+
     var body: some View {
         Group {
             if let image {
                 Image(uiImage: image)
                     .resizable()
-                    .scaledToFill()
+                    .aspectRatio(contentMode: contentMode)
             } else if isLoading {
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)

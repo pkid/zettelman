@@ -6,15 +6,14 @@ struct AppointmentDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.openURL) private var openURL
 
-    @State private var temporaryURL: URL?
-    @State private var temporaryURLError: String?
     @State private var isDeleting = false
     @State private var showingDeleteConfirmation = false
     @State private var deleteErrorMessage: String?
     @State private var showingDeleteError = false
 
-    private let service = ZettelS3Service()
+    private let detailImageHeight: CGFloat = 320
 
     init(appointment: Appointment, onDelete: (() async throws -> Void)? = nil) {
         self.appointment = appointment
@@ -24,10 +23,19 @@ struct AppointmentDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                S3ZettelImageView(key: appointment.uploadedZettel.key, cornerRadius: 28)
-                    .frame(height: 320)
-
                 detailsCard
+
+                S3ZettelImageView(
+                    key: appointment.uploadedZettel.key,
+                    cornerRadius: 28,
+                    contentMode: .fill
+                )
+                .frame(maxWidth: .infinity)
+                .frame(height: detailImageHeight)
+                .padding(.top, 4)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .allowsHitTesting(false)
             }
             .padding(20)
         }
@@ -41,6 +49,8 @@ struct AppointmentDetailView: View {
         )
         .navigationTitle("Appointment")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         .toolbar {
             if onDelete != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -66,9 +76,6 @@ struct AppointmentDetailView: View {
         } message: {
             Text(deleteErrorMessage ?? "Couldn't delete this appointment.")
         }
-        .task {
-            await loadTemporaryURL()
-        }
     }
 
     private var detailsCard: some View {
@@ -78,15 +85,7 @@ struct AppointmentDetailView: View {
             if let withWhom = appointment.withWhom, !withWhom.isEmpty {
                 detailRow(title: "With whom", value: withWhom)
             }
-            detailRow(title: "Where", value: appointment.location)
-            if let temporaryURL {
-                Link("Open original upload", destination: temporaryURL)
-                    .fontWeight(.semibold)
-            } else if let temporaryURLError {
-                Text(temporaryURLError)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+            locationRow
         }
         .padding(22)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
@@ -107,6 +106,47 @@ struct AppointmentDetailView: View {
 
     private func formattedDate(_ date: Date) -> String {
         date.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    private var locationRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Where")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            (
+                Text(appointment.location)
+                + Text(" ")
+                + Text(Image(systemName: "arrow.up.right.square"))
+                    .font(.caption2.weight(.semibold))
+            )
+            .font(.body)
+            .foregroundStyle(.blue)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                openLocationInGoogleMaps()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func openLocationInGoogleMaps() {
+        guard let encodedLocation = appointment.location.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let webURL = URL(string: "https://www.google.com/maps/search/?api=1&query=\(encodedLocation)") else {
+            return
+        }
+
+        if let appURL = URL(string: "comgooglemaps://?q=\(encodedLocation)") {
+            openURL(appURL) { accepted in
+                if !accepted {
+                    openURL(webURL)
+                }
+            }
+        } else {
+            openURL(webURL)
+        }
     }
 
     private func deleteAppointment() {
@@ -138,12 +178,4 @@ struct AppointmentDetailView: View {
         return [Color(red: 0.97, green: 0.95, blue: 0.90), Color.white]
     }
 
-    @MainActor
-    private func loadTemporaryURL() async {
-        do {
-            temporaryURL = try await service.temporaryURL(for: appointment.uploadedZettel.key)
-        } catch {
-            temporaryURLError = "Temporary link unavailable."
-        }
-    }
 }
