@@ -16,6 +16,7 @@
 		4BB5BCB42E5C47E200F3C073 /* Amplify in Frameworks */ = {isa = PBXBuildFile; productRef = 4BB5BCB32E5C47E200F3C073 /* Amplify */; };
 		66D117CD066BB7C9E26835A9 /* AddAppointmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D58B9AB77B026A765DC3C6 /* AddAppointmentView.swift */; };
 		78F8D548B252A812FE8CEC40 /* ZettelAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED10117073804AF89C6750B /* ZettelAnalysisService.swift */; };
+		AAAA11112222333344445556 /* LinearDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA11112222333344445555 /* LinearDesign.swift */; };
 		7ED5B6DDB5463DC3754AE122 /* AppointmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12948D913F6B862D6B3F17EF /* AppointmentStore.swift */; };
 		89239CE3D7A2A88EED566616 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8888A31001F4F1DCBD8A2E9D /* Models.swift */; };
 		8AB3B5F541E601FF881F314F /* BackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A248A5FC935CCE55317B950 /* BackendConfiguration.swift */; };
@@ -68,6 +69,7 @@
 		D9D58B9AB77B026A765DC3C6 /* AddAppointmentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddAppointmentView.swift; sourceTree = "<group>"; };
 		DB55E43E61DE3266C12E2FC8 /* AmplifyConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AmplifyConfiguration.swift; sourceTree = "<group>"; };
 		DED10117073804AF89C6750B /* ZettelAnalysisService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ZettelAnalysisService.swift; sourceTree = "<group>"; };
+		AAAA11112222333344445555 /* LinearDesign.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinearDesign.swift; sourceTree = "<group>"; };
 		E071023152E10ABC0A914D26 /* amplifyconfiguration.json */ = {isa = PBXFileReference; includeInIndex = 1; path = amplifyconfiguration.json; sourceTree = "<group>"; };
 		E97E5D1C3A39C75A05F0575A /* S3ZettelImageView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = S3ZettelImageView.swift; sourceTree = "<group>"; };
 		FABC123456789ABCDEF01234 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 				8888A31001F4F1DCBD8A2E9D /* Models.swift */,
 				E97E5D1C3A39C75A05F0575A /* S3ZettelImageView.swift */,
 				DED10117073804AF89C6750B /* ZettelAnalysisService.swift */,
+				AAAA11112222333344445555 /* LinearDesign.swift */,
 				5D1FFD97A76332CA9BC74CFB /* ZettelS3Service.swift */,
 				2002D2C2C4DB5B4C9ACDFB89 /* ZettelmanApp.swift */,
 				414DFB15DBBD1B1BBFCD4EE2 /* Assets.xcassets */,
@@ -263,6 +266,7 @@
 				E8D01C25B44CF883497E8B18 /* CognitoAuthView.swift in Sources */,
 				BBC346E086063E40E5CAA7D0 /* ContentView.swift in Sources */,
 				32801F4629C69B6EDFC90CFE /* ImagePickers.swift in Sources */,
+				AAAA11112222333344445556 /* LinearDesign.swift in Sources */,
 				89239CE3D7A2A88EED566616 /* Models.swift in Sources */,
 				3CB83174BE19AC2679683882 /* S3ZettelImageView.swift in Sources */,
 				78F8D548B252A812FE8CEC40 /* ZettelAnalysisService.swift in Sources */,

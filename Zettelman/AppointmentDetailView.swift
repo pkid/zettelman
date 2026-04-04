@@ -5,7 +5,6 @@ struct AppointmentDetailView: View {
     let onDelete: (() async throws -> Void)?
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openURL) private var openURL
 
     @State private var isDeleting = false
@@ -21,37 +20,33 @@ struct AppointmentDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
                 detailsCard
 
                 S3ZettelImageView(
                     key: appointment.uploadedZettel.key,
-                    cornerRadius: 28,
+                    cornerRadius: LinearDesign.Radius.xLarge,
                     contentMode: .fit
                 )
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 360)
-                .padding(.top, 4)
-                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .padding(.top, LinearDesign.Spacing.xxSmall)
+                .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
                 .contentShape(Rectangle())
                 .onTapGesture {
                     showingImagePreview = true
                 }
             }
-            .padding(20)
+            .padding(LinearDesign.Spacing.medium)
         }
         .background(
-            LinearGradient(
-                colors: backgroundGradientColors,
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            LinearDesign.Colors.panelDark
+                .ignoresSafeArea()
         )
         .navigationTitle("appointment.detail.title")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(LinearDesign.Colors.level3Surface.opacity(0.8), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         .toolbar {
             if onDelete != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -59,6 +54,8 @@ struct AppointmentDetailView: View {
                         showingDeleteConfirmation = true
                     } label: {
                         Image(systemName: "trash")
+                            .font(LinearDesign.Typography.bodyMedium)
+                            .foregroundStyle(LinearDesign.Colors.Semantic.destructive)
                     }
                     .disabled(isDeleting)
                 }
@@ -87,8 +84,8 @@ struct AppointmentDetailView: View {
                     contentMode: .fit
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 24)
+                .padding(.horizontal, LinearDesign.Spacing.small)
+                .padding(.vertical, LinearDesign.Spacing.medium)
 
                 Button {
                     showingImagePreview = false
@@ -97,14 +94,14 @@ struct AppointmentDetailView: View {
                         .font(.system(size: 30, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.9))
                 }
-                .padding(.top, 16)
-                .padding(.trailing, 16)
+                .padding(.top, LinearDesign.Spacing.medium)
+                .padding(.trailing, LinearDesign.Spacing.medium)
             }
         }
     }
 
     private var detailsCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
             detailRow(title: String(localized: "appointment.detail.datetime"), value: formattedDate(appointment.scheduledAt))
             detailRow(title: String(localized: "appointment.detail.what"), value: appointment.what)
             if let withWhom = appointment.withWhom, !withWhom.isEmpty {
@@ -112,19 +109,19 @@ struct AppointmentDetailView: View {
             }
             locationRow
         }
-        .padding(22)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .padding(LinearDesign.Spacing.large)
+        .linearCard()
     }
 
     private func detailRow(title: String, value: String, mono: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
             Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(LinearDesign.Typography.labelMedium)
+                .foregroundStyle(LinearDesign.Colors.tertiaryText)
 
             Text(value)
-                .font(mono ? .system(.footnote, design: .monospaced) : .body)
-                .foregroundStyle(.primary)
+                .font(mono ? LinearDesign.Typography.caption : LinearDesign.Typography.body)
+                .foregroundStyle(LinearDesign.Colors.primaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -134,19 +131,19 @@ struct AppointmentDetailView: View {
     }
 
     private var locationRow: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
             Text("appointment.detail.location")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(LinearDesign.Typography.labelMedium)
+                .foregroundStyle(LinearDesign.Colors.tertiaryText)
 
             (
                 Text(appointment.location)
                 + Text(" ")
                 + Text(Image(systemName: "arrow.up.right.square"))
-                    .font(.caption2.weight(.semibold))
+                    .font(LinearDesign.Typography.label)
             )
-            .font(.body)
-            .foregroundStyle(.blue)
+            .font(LinearDesign.Typography.body)
+            .foregroundStyle(LinearDesign.Colors.accentViolet)
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
@@ -194,13 +191,4 @@ struct AppointmentDetailView: View {
             }
         }
     }
-
-    private var backgroundGradientColors: [Color] {
-        if colorScheme == .dark {
-            return [Color(red: 0.09, green: 0.10, blue: 0.10), Color(red: 0.12, green: 0.16, blue: 0.15)]
-        }
-
-        return [Color(red: 0.97, green: 0.95, blue: 0.90), Color.white]
-    }
-
 }

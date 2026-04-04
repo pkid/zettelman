@@ -2,7 +2,6 @@ import SwiftUI
 import UIKit
 
 struct AppointmentListView: View {
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openURL) private var openURL
     @EnvironmentObject private var authManager: CognitoAuthManager
     @StateObject private var store = AppointmentStore()
@@ -13,19 +12,15 @@ struct AppointmentListView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
-                LinearGradient(
-                    colors: backgroundGradientColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                LinearDesign.Colors.panelDark
+                    .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
                         if let errorMessage = store.errorMessage, !errorMessage.isEmpty {
                             Text(errorMessage)
-                                .font(.footnote)
-                                .foregroundStyle(.red)
+                                .font(LinearDesign.Typography.small)
+                                .foregroundStyle(LinearDesign.Colors.Semantic.destructive)
                         }
 
                         if store.isLoading && store.appointments.isEmpty {
@@ -36,7 +31,7 @@ struct AppointmentListView: View {
                             appointmentCards
                         }
                     }
-                    .padding(20)
+                    .padding(LinearDesign.Spacing.medium)
                 }
 
                 addButton
@@ -49,12 +44,8 @@ struct AppointmentListView: View {
                     Button(action: { showingAccountPopup = true }) {
                         Image(systemName: "person.crop.circle")
                             .font(.title3)
+                            .foregroundStyle(LinearDesign.Colors.secondaryText)
                     }
-                }
-
-                ToolbarItem(placement: .principal) {
-                    Text("appointments.title")
-                        .font(.headline)
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
@@ -64,6 +55,8 @@ struct AppointmentListView: View {
                             await authManager.signOut()
                         }
                     }
+                    .font(LinearDesign.Typography.small)
+                    .foregroundStyle(LinearDesign.Colors.secondaryText)
                 }
             }
         }
@@ -78,7 +71,7 @@ struct AppointmentListView: View {
         .overlay(alignment: .center) {
             if store.saveConfirmation != nil {
                 saveConfirmationBanner
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, LinearDesign.Spacing.medium)
                     .frame(maxWidth: 440)
             }
         }
@@ -98,37 +91,45 @@ struct AppointmentListView: View {
     }
 
     private var loadingState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: LinearDesign.Spacing.medium) {
             ProgressView()
+                .tint(LinearDesign.Colors.accentViolet)
             Text("appointments.loading")
-                .foregroundStyle(.secondary)
+                .font(LinearDesign.Typography.small)
+                .foregroundStyle(LinearDesign.Colors.tertiaryText)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        .padding(.vertical, LinearDesign.Spacing.xxLarge)
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "calendar.badge.plus")
-                .font(.system(size: 44))
-                .foregroundStyle(emptyIconColor)
+        VStack(spacing: LinearDesign.Spacing.medium) {
+            ZStack {
+                Circle()
+                    .fill(LinearDesign.Colors.level3Surface)
+                    .frame(width: 80, height: 80)
+
+                Image(systemName: "calendar.badge.plus")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
+            }
 
             Text("appointments.empty.title")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(emptyTitleColor)
+                .font(LinearDesign.Typography.heading3)
+                .foregroundStyle(LinearDesign.Colors.primaryText)
 
             Text("appointments.empty.subtitle")
-                .font(.subheadline)
-                .foregroundStyle(emptySubtitleColor)
+                .font(LinearDesign.Typography.body)
+                .foregroundStyle(LinearDesign.Colors.secondaryText)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(28)
-        .background(emptyCardColor, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .padding(LinearDesign.Spacing.xLarge)
+        .linearCard()
     }
 
     private var appointmentCards: some View {
-        LazyVStack(spacing: 14) {
+        LazyVStack(spacing: LinearDesign.Spacing.small) {
             ForEach(store.appointments) { appointment in
                 NavigationLink {
                     AppointmentDetailView(appointment: appointment, onDelete: {
@@ -136,8 +137,6 @@ struct AppointmentListView: View {
                     })
                 } label: {
                     AppointmentCardRow(appointment: appointment)
-                    .padding(10)
-                    .background(cardBackgroundColor, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
@@ -147,43 +146,43 @@ struct AppointmentListView: View {
     private var addButton: some View {
         Button(action: { showingComposer = true }) {
             Label("appointments.add.button", systemImage: "plus")
-                .font(.headline)
-                .padding(.horizontal, 20)
-                .frame(height: 56)
-                .background(Color(red: 0.28, green: 0.45, blue: 0.34))
+                .font(LinearDesign.Typography.bodyMedium)
+                .padding(.horizontal, LinearDesign.Spacing.medium)
+                .frame(height: 48)
+                .background(LinearDesign.Colors.accentViolet)
                 .foregroundStyle(.white)
                 .clipShape(Capsule())
-                .shadow(color: .black.opacity(0.15), radius: 12, y: 8)
+                .shadow(color: LinearDesign.Colors.accentViolet.opacity(0.3), radius: 12, y: 8)
         }
-        .padding(20)
+        .padding(LinearDesign.Spacing.medium)
     }
 
     @ViewBuilder
     private var saveConfirmationBanner: some View {
         if let confirmation = store.saveConfirmation {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: LinearDesign.Spacing.small) {
+                HStack(alignment: .top, spacing: LinearDesign.Spacing.small) {
                     Image(systemName: confirmation.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(confirmation.isSuccess ? Color.green : Color.orange)
+                        .font(LinearDesign.Typography.body)
+                        .foregroundStyle(confirmation.isSuccess ? LinearDesign.Colors.successGreen : LinearDesign.Colors.Semantic.destructive)
 
                     Text(confirmation.message)
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(Color(uiColor: .label))
+                        .font(LinearDesign.Typography.small)
+                        .foregroundStyle(LinearDesign.Colors.primaryText)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                HStack(spacing: 10) {
+                HStack(spacing: LinearDesign.Spacing.small) {
                     if confirmation.requiresCalendarAccessPrompt {
                         Button("common.open.settings") {
                             openCalendarSettings()
                         }
-                        .font(.footnote.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
-                        .foregroundStyle(Color(uiColor: .label))
+                        .font(LinearDesign.Typography.labelMedium)
+                        .padding(.horizontal, LinearDesign.Spacing.small)
+                        .padding(.vertical, LinearDesign.Spacing.xxSmall)
+                        .background(LinearDesign.Colors.level3Surface, in: Capsule())
+                        .foregroundStyle(LinearDesign.Colors.primaryText)
                         .buttonStyle(.plain)
                     }
 
@@ -194,61 +193,20 @@ struct AppointmentListView: View {
                             store.clearSaveConfirmation()
                         }
                     }
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Color(uiColor: .secondaryLabel))
+                    .font(LinearDesign.Typography.labelMedium)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
                     .buttonStyle(.plain)
                 }
             }
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(uiColor: .secondarySystemBackground))
-            )
+            .padding(LinearDesign.Spacing.medium)
+            .background(LinearDesign.Colors.level3Surface, in: RoundedRectangle(cornerRadius: LinearDesign.Radius.large))
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(confirmationBorderColor(isSuccess: confirmation.isSuccess), lineWidth: 1)
+                RoundedRectangle(cornerRadius: LinearDesign.Radius.large)
+                    .stroke(confirmation.isSuccess ? LinearDesign.Colors.successGreen.opacity(0.3) : LinearDesign.Colors.Semantic.destructive.opacity(0.3), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(colorScheme == .dark ? 0.24 : 0.14), radius: 8, y: 4)
+            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             .transition(.scale(scale: 0.96).combined(with: .opacity))
         }
-    }
-
-    private var backgroundGradientColors: [Color] {
-        if colorScheme == .dark {
-            return [Color(red: 0.09, green: 0.10, blue: 0.10), Color(red: 0.12, green: 0.16, blue: 0.15)]
-        }
-
-        return [Color(red: 0.97, green: 0.95, blue: 0.88), Color(red: 0.92, green: 0.96, blue: 0.93)]
-    }
-
-    private var cardBackgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white.opacity(0.88)
-    }
-
-    private var emptyCardColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white.opacity(0.7)
-    }
-
-    private var emptyTitleColor: Color {
-        Color(uiColor: .label)
-    }
-
-    private var emptySubtitleColor: Color {
-        Color(uiColor: .secondaryLabel)
-    }
-
-    private var emptyIconColor: Color {
-        colorScheme == .dark ? Color(red: 0.83, green: 0.66, blue: 0.42) : Color(red: 0.45, green: 0.34, blue: 0.22)
-    }
-
-    private func confirmationBackgroundColor(isSuccess: Bool) -> Color {
-        let baseColor = isSuccess ? Color.green : Color.orange
-        return baseColor.opacity(colorScheme == .dark ? 0.28 : 0.2)
-    }
-
-    private func confirmationBorderColor(isSuccess: Bool) -> Color {
-        let baseColor = isSuccess ? Color.green : Color.orange
-        return baseColor.opacity(colorScheme == .dark ? 0.75 : 0.45)
     }
 
     private func scheduleSaveConfirmationDismiss(for confirmation: SaveConfirmation?) {
@@ -274,44 +232,69 @@ struct AppointmentListView: View {
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         openURL(settingsURL)
     }
-
 }
 
 private struct AppointmentCardRow: View {
     let appointment: Appointment
-    private let thumbnailSide: CGFloat = 64
+    private let thumbnailSide: CGFloat = 86
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: LinearDesign.Spacing.medium) {
             S3ZettelImageView(
                 key: appointment.uploadedZettel.key,
-                cornerRadius: 16,
+                cornerRadius: LinearDesign.Radius.large,
                 contentMode: .fit
             )
-                .aspectRatio(1, contentMode: .fit)
-                .frame(width: thumbnailSide, height: thumbnailSide)
-                .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .clipped()
+            .aspectRatio(1, contentMode: .fit)
+            .frame(width: thumbnailSide, height: thumbnailSide)
+            .background(LinearDesign.Colors.level3Surface, in: RoundedRectangle(cornerRadius: LinearDesign.Radius.large))
+            .clipped()
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
                 Text(appointment.what)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                    .font(LinearDesign.Typography.bodyMedium)
+                    .foregroundStyle(LinearDesign.Colors.primaryText)
+                    .lineLimit(1)
 
-                Label(appointment.scheduledAt.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar")
-                    .font(.subheadline)
+                HStack(spacing: LinearDesign.Spacing.xxSmall) {
+                    Image(systemName: "calendar")
+                        .font(.caption)
+                    Text(appointment.scheduledAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(LinearDesign.Typography.caption)
+                }
+                .foregroundStyle(LinearDesign.Colors.secondaryText)
 
-                Label(appointment.location, systemImage: "mappin.and.ellipse")
-                    .font(.subheadline)
-                    .lineLimit(2)
+                HStack(spacing: LinearDesign.Spacing.xxSmall) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.caption)
+                    Text(appointment.location)
+                        .font(LinearDesign.Typography.caption)
+                }
+                .foregroundStyle(LinearDesign.Colors.secondaryText)
+                .lineLimit(2)
 
                 if let withWhom = appointment.withWhom, !withWhom.isEmpty {
-                    Label(withWhom, systemImage: "person.text.rectangle")
-                        .font(.subheadline)
-                        .lineLimit(1)
+                    HStack(spacing: LinearDesign.Spacing.xxSmall) {
+                        Image(systemName: "person.text.rectangle")
+                            .font(.caption)
+                        Text(withWhom)
+                            .font(LinearDesign.Typography.caption)
+                    }
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                    .lineLimit(1)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(LinearDesign.Colors.quaternaryText)
         }
+        .padding(LinearDesign.Spacing.medium)
+        .background(LinearDesign.Colors.level3Surface, in: RoundedRectangle(cornerRadius: LinearDesign.Radius.large))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinearDesign.Radius.large)
+                .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
+        )
     }
 }

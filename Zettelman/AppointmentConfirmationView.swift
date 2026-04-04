@@ -19,45 +19,25 @@ struct AppointmentConfirmationView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("appointment.confirm.section") {
-                    DatePicker("appointment.confirm.datetime", selection: $editedDraft.scheduledAt)
-
-                    Toggle("appointment.confirm.reminder", isOn: $editedDraft.reminderEnabled)
-                    Toggle("appointment.confirm.calendar.toggle", isOn: $editedDraft.addToCalendar)
-
-                    TextField("appointment.confirm.what.field", text: $editedDraft.what)
-                        .textInputAutocapitalization(.sentences)
-
-                    TextField("appointment.confirm.location.field", text: $editedDraft.location)
-                        .textInputAutocapitalization(.words)
-
-                    TextField("appointment.confirm.withwhom.field", text: $editedDraft.withWhom)
-                        .textInputAutocapitalization(.words)
-
-                    Text(String(format: String(localized: "appointment.confirm.wordcount"), wordCount(of: editedDraft.what)))
-                        .font(.caption)
-                        .foregroundStyle(wordCount(of: editedDraft.what) > 5 ? .red : .secondary)
+            ScrollView {
+                VStack(spacing: LinearDesign.Spacing.medium) {
+                    formSection
+                    imageSection
                 }
-
-                Section("appointment.confirm.original.zettel") {
-                    if let image = previewImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: .infinity)
-                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
-                    }
-                }
+                .padding(LinearDesign.Spacing.medium)
             }
+            .background(LinearDesign.Colors.panelDark)
             .navigationTitle("appointment.confirm.title")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(LinearDesign.Colors.level3Surface.opacity(0.8), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("common.cancel") {
                         dismiss()
                     }
+                    .font(LinearDesign.Typography.body)
+                    .foregroundStyle(LinearDesign.Colors.secondaryText)
                     .disabled(isSaving)
                 }
 
@@ -65,6 +45,8 @@ struct AppointmentConfirmationView: View {
                     Button(isSaving ? "appointment.confirm.saving" : "appointment.confirm.save") {
                         save()
                     }
+                    .font(LinearDesign.Typography.bodyMedium)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
                     .disabled(isSaving)
                 }
             }
@@ -74,6 +56,73 @@ struct AppointmentConfirmationView: View {
         } message: {
             Text(alertMessage)
         }
+    }
+
+    private var formSection: some View {
+        VStack(spacing: LinearDesign.Spacing.medium) {
+            dateTimeRow
+            ToggleRow(
+                title: "appointment.confirm.reminder",
+                isOn: $editedDraft.reminderEnabled
+            )
+            ToggleRow(
+                title: "appointment.confirm.calendar.toggle",
+                isOn: $editedDraft.addToCalendar
+            )
+            InputRow(
+                title: "appointment.confirm.what.field",
+                text: $editedDraft.what
+            )
+            .textInputAutocapitalization(.sentences)
+            InputRow(
+                title: "appointment.confirm.location.field",
+                text: $editedDraft.location
+            )
+            .textInputAutocapitalization(.words)
+            InputRow(
+                title: "appointment.confirm.withwhom.field",
+                text: $editedDraft.withWhom
+            )
+            .textInputAutocapitalization(.words)
+
+            Text("\(wordCount(of: editedDraft.what))/5 words")
+                .font(LinearDesign.Typography.caption)
+                .foregroundStyle(wordCount(of: editedDraft.what) > 5 ? LinearDesign.Colors.Semantic.destructive : LinearDesign.Colors.tertiaryText)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(LinearDesign.Spacing.medium)
+        .linearCard()
+    }
+
+    private var dateTimeRow: some View {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
+            Text("appointment.confirm.datetime")
+                .font(LinearDesign.Typography.labelMedium)
+                .foregroundStyle(LinearDesign.Colors.tertiaryText)
+            DatePicker("", selection: $editedDraft.scheduledAt)
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                .tint(LinearDesign.Colors.accentViolet)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var imageSection: some View {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.small) {
+            Text("appointment.confirm.original.zettel")
+                .font(LinearDesign.Typography.labelMedium)
+                .foregroundStyle(LinearDesign.Colors.tertiaryText)
+
+            if let image = previewImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
+            }
+        }
+        .padding(LinearDesign.Spacing.medium)
+        .linearCard()
     }
 
     private var previewImage: UIImage? {
@@ -123,5 +172,36 @@ struct AppointmentConfirmationView: View {
 
     private func wordCount(of value: String) -> Int {
         value.split(whereSeparator: \.isWhitespace).count
+    }
+}
+
+private struct InputRow: View {
+    let title: LocalizedStringKey
+    @Binding var text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
+            Text(title)
+                .font(LinearDesign.Typography.labelMedium)
+                .foregroundStyle(LinearDesign.Colors.tertiaryText)
+            TextField("", text: $text)
+                .linearInputField()
+        }
+    }
+}
+
+private struct ToggleRow: View {
+    let title: LocalizedStringKey
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(LinearDesign.Typography.body)
+                .foregroundStyle(LinearDesign.Colors.primaryText)
+            Spacer()
+            Toggle("", isOn: $isOn)
+                .tint(LinearDesign.Colors.accentViolet)
+        }
     }
 }

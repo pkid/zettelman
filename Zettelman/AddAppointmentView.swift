@@ -4,7 +4,6 @@ import UIKit
 struct AddAppointmentView: View {
     @ObservedObject var store: AppointmentStore
 
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedImage: UIImage?
@@ -18,19 +17,15 @@ struct AddAppointmentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    colors: backgroundGradientColors,
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                LinearDesign.Colors.panelDark
+                    .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
                         heroCard
                         captureControls
                     }
-                    .padding(20)
+                    .padding(LinearDesign.Spacing.medium)
                 }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -38,11 +33,15 @@ struct AddAppointmentView: View {
             }
             .navigationTitle("appointment.new.title")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(LinearDesign.Colors.level3Surface.opacity(0.8), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("common.close") {
                         dismiss()
                     }
+                    .font(LinearDesign.Typography.body)
+                    .foregroundStyle(LinearDesign.Colors.secondaryText)
                     .disabled(isAnalyzing)
                 }
             }
@@ -76,10 +75,10 @@ struct AddAppointmentView: View {
     }
 
     private var heroCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
             Text("appointment.capture.title")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundStyle(heroTitleColor)
+                .font(LinearDesign.Typography.heading2)
+                .foregroundStyle(LinearDesign.Colors.primaryText)
 
             Group {
                 if let selectedImage {
@@ -88,39 +87,60 @@ struct AddAppointmentView: View {
                         .scaledToFit()
                         .frame(maxWidth: .infinity)
                         .frame(maxHeight: 380)
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
                 } else {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(heroPlaceholderFillColor)
+                    RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous)
+                        .fill(LinearDesign.Colors.level3Surface)
                         .frame(height: 260)
                         .overlay {
-                            VStack(spacing: 12) {
+                            VStack(spacing: LinearDesign.Spacing.medium) {
                                 Image(systemName: "camera.viewfinder")
                                     .font(.system(size: 36, weight: .medium))
                                 Text("appointment.capture.no.zettel")
-                                    .font(.headline)
+                                    .font(LinearDesign.Typography.body)
                             }
-                            .foregroundStyle(heroPlaceholderAccentColor)
+                            .foregroundStyle(LinearDesign.Colors.tertiaryText)
                         }
                 }
             }
         }
-        .padding(22)
-        .background(
-            RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(heroCardFillColor)
-        )
+        .padding(LinearDesign.Spacing.large)
+        .linearCard()
     }
 
     private var captureControls: some View {
-        VStack(spacing: 12) {
-            Button(action: { showingCamera = true }) {
-                label(title: String(localized: "appointment.capture.take.picture"), icon: "camera")
+        VStack(spacing: LinearDesign.Spacing.small) {
+            captureButton(title: String(localized: "appointment.capture.take.picture"), icon: "camera") {
+                showingCamera = true
             }
 
-            Button(action: { showingPhotoPicker = true }) {
-                label(title: String(localized: "appointment.capture.choose.photos"), icon: "photo.on.rectangle")
+            captureButton(title: String(localized: "appointment.capture.choose.photos"), icon: "photo.on.rectangle") {
+                showingPhotoPicker = true
             }
+        }
+    }
+
+    private func captureButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .font(LinearDesign.Typography.bodyMedium)
+                Text(title)
+                    .font(LinearDesign.Typography.bodyMedium)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(LinearDesign.Typography.caption)
+                    .foregroundStyle(LinearDesign.Colors.quaternaryText)
+            }
+            .padding(LinearDesign.Spacing.medium)
+            .frame(height: 54)
+            .background(LinearDesign.Colors.level3Surface)
+            .foregroundStyle(LinearDesign.Colors.primaryText)
+            .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinearDesign.Radius.medium)
+                    .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
+            )
         }
     }
 
@@ -135,38 +155,23 @@ struct AddAppointmentView: View {
                 }
 
                 Text(isAnalyzing ? "appointment.analyzing" : "appointment.analyze.button")
-                    .fontWeight(.semibold)
+                    .font(LinearDesign.Typography.bodyMedium)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(isAnalyzeButtonDisabled ? disabledAnalyzeButtonColor : analyzeButtonColor)
-            .foregroundStyle(isAnalyzeButtonDisabled ? disabledAnalyzeButtonTextColor : .white)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .frame(height: 48)
+            .background(isAnalyzeButtonDisabled ? LinearDesign.Colors.borderSecondary : LinearDesign.Colors.accentViolet)
+            .foregroundStyle(isAnalyzeButtonDisabled ? LinearDesign.Colors.tertiaryText : .white)
+            .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
         }
         .disabled(isAnalyzeButtonDisabled)
     }
 
     private var analyzeButtonBar: some View {
         analyzeButton
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
-            .background(.ultraThinMaterial)
-    }
-
-    private func label(title: String, icon: String) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.headline)
-            Text(title)
-                .fontWeight(.semibold)
-            Spacer()
-        }
-        .padding(.horizontal, 18)
-        .frame(height: 54)
-        .background(actionButtonFillColor)
-        .foregroundStyle(actionButtonTextColor)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .padding(.horizontal, LinearDesign.Spacing.medium)
+            .padding(.top, LinearDesign.Spacing.small)
+            .padding(.bottom, LinearDesign.Spacing.small)
+            .background(LinearDesign.Colors.panelDark)
     }
 
     private func analyze() {
@@ -187,51 +192,7 @@ struct AddAppointmentView: View {
         }
     }
 
-    private var backgroundGradientColors: [Color] {
-        if colorScheme == .dark {
-            return [Color(red: 0.09, green: 0.10, blue: 0.10), Color(red: 0.12, green: 0.16, blue: 0.15)]
-        }
-
-        return [Color(red: 0.98, green: 0.96, blue: 0.90), Color.white]
-    }
-
-    private var heroCardFillColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color(red: 0.96, green: 0.90, blue: 0.76)
-    }
-
-    private var heroPlaceholderFillColor: Color {
-        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color.white.opacity(0.85)
-    }
-
-    private var heroTitleColor: Color {
-        colorScheme == .dark ? Color(uiColor: .label) : Color(red: 0.24, green: 0.18, blue: 0.10)
-    }
-
-    private var heroPlaceholderAccentColor: Color {
-        colorScheme == .dark ? Color(red: 0.83, green: 0.66, blue: 0.42) : Color(red: 0.43, green: 0.30, blue: 0.19)
-    }
-
-    private var actionButtonFillColor: Color {
-        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color.white.opacity(0.96)
-    }
-
-    private var actionButtonTextColor: Color {
-        Color(uiColor: .label)
-    }
-
-    private var analyzeButtonColor: Color {
-        Color(red: 0.28, green: 0.45, blue: 0.34)
-    }
-
     private var isAnalyzeButtonDisabled: Bool {
         selectedImage == nil || isAnalyzing
-    }
-
-    private var disabledAnalyzeButtonColor: Color {
-        Color(uiColor: .systemGray4)
-    }
-
-    private var disabledAnalyzeButtonTextColor: Color {
-        Color(uiColor: .label)
     }
 }

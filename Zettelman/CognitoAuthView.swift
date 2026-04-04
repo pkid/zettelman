@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct CognitoAuthView: View {
-    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var authManager: CognitoAuthManager
 
     @State private var mode: AuthMode = .signIn
@@ -21,25 +20,18 @@ struct CognitoAuthView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                LinearGradient(
-                    colors: backgroundGradientColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            LinearDesign.Colors.panelDark
                 .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        header
-                        formCard
-                    }
-                    .padding(20)
+            ScrollView {
+                VStack(spacing: LinearDesign.Spacing.xxLarge) {
+                    headerSection
+                    formSection
+                    footerSection
                 }
+                .padding(LinearDesign.Spacing.xLarge)
             }
-            .navigationTitle("")
-            .navigationBarHidden(true)
         }
         .alert("auth.alert.title", isPresented: $showingAlert) {
             Button("common.ok", role: .cancel) { }
@@ -48,56 +40,68 @@ struct CognitoAuthView: View {
         }
     }
 
-    private var header: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "note.text.badge.plus")
-                .font(.system(size: 54, weight: .semibold))
-                .foregroundStyle(iconColor)
+    private var headerSection: some View {
+        VStack(spacing: LinearDesign.Spacing.medium) {
+            ZStack {
+                Circle()
+                    .fill(LinearDesign.Colors.accentViolet.opacity(0.15))
+                    .frame(width: 80, height: 80)
+
+                Image(systemName: "note.text.badge.plus")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
+            }
 
             Text("auth.app.name")
-                .font(.system(size: 34, weight: .bold, design: .rounded))
-                .foregroundStyle(titleColor)
+                .font(LinearDesign.Typography.heading1)
+                .foregroundStyle(LinearDesign.Colors.primaryText)
 
             Text(modeSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(subtitleColor)
+                .font(LinearDesign.Typography.body)
+                .foregroundStyle(LinearDesign.Colors.secondaryText)
                 .multilineTextAlignment(.center)
         }
-        .padding(.top, 24)
+        .padding(.top, LinearDesign.Spacing.xxxLarge)
     }
 
-    private var formCard: some View {
-        VStack(spacing: 18) {
-            inputField(
-                TextField("auth.email", text: $email)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .textContentType(nil)
+    private var formSection: some View {
+        VStack(spacing: LinearDesign.Spacing.medium) {
+            LinearTextField(
+                placeholder: "auth.email",
+                text: $email
             )
+            .textInputAutocapitalization(.never)
+            .keyboardType(.emailAddress)
+            .autocorrectionDisabled()
+            .textContentType(nil)
             .disabled(isLoading)
 
-            inputField(
-                SecureField(mode == .confirmResetPassword ? "auth.new.password" : "auth.password", text: $password)
-                    .textContentType(nil)
+            LinearTextField(
+                placeholder: mode == .confirmResetPassword ? "auth.new.password" : "auth.password",
+                text: $password,
+                isSecure: true
             )
+            .textContentType(nil)
             .disabled(isLoading)
 
             if mode == .signUp || mode == .confirmResetPassword {
-                inputField(
-                    SecureField("auth.confirm.password", text: $confirmPassword)
-                        .textContentType(nil)
+                LinearTextField(
+                    placeholder: "auth.confirm.password",
+                    text: $confirmPassword,
+                    isSecure: true
                 )
+                .textContentType(nil)
                 .disabled(isLoading)
             }
 
             if mode == .confirmResetPassword {
-                inputField(
-                    TextField("auth.reset.code", text: $confirmationCode)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .textContentType(nil)
+                LinearTextField(
+                    placeholder: "auth.reset.code",
+                    text: $confirmationCode
                 )
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .textContentType(nil)
                 .disabled(isLoading)
             }
 
@@ -108,39 +112,46 @@ struct CognitoAuthView: View {
                             .tint(.white)
                     } else {
                         Text(primaryButtonTitle)
-                            .fontWeight(.semibold)
+                            .font(LinearDesign.Typography.bodyMedium)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(primaryButtonColor)
+                .frame(height: 40)
+                .background(LinearDesign.Colors.accentViolet)
                 .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
             }
             .disabled(isLoading || !isFormValid)
-
-            footer
         }
-        .padding(24)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .linearCard()
+        .padding(.horizontal, LinearDesign.Spacing.xxSmall)
     }
 
-    private var footer: some View {
-        VStack(spacing: 12) {
+    private var footerSection: some View {
+        VStack(spacing: LinearDesign.Spacing.small) {
             switch mode {
             case .signIn:
                 Button("auth.create.account") { mode = .signUp }
+                    .font(LinearDesign.Typography.small)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
                 Button("auth.forgot.password") { mode = .resetPassword }
+                    .font(LinearDesign.Typography.small)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .signUp:
                 Button("auth.already.have.account") { mode = .signIn }
+                    .font(LinearDesign.Typography.small)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .resetPassword:
                 Button("auth.back.to.signin") { mode = .signIn }
+                    .font(LinearDesign.Typography.small)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .confirmResetPassword:
                 Button("auth.back.to.signin") { mode = .signIn }
+                    .font(LinearDesign.Typography.small)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
             }
         }
-        .font(.footnote)
-        .foregroundStyle(footerColor)
+        .font(LinearDesign.Typography.small)
     }
 
     private var modeSubtitle: String {
@@ -166,17 +177,6 @@ struct CognitoAuthView: View {
             return String(localized: "auth.reset.button")
         case .confirmResetPassword:
             return String(localized: "auth.confirm.reset.button")
-        }
-    }
-
-    private var primaryButtonColor: Color {
-        switch mode {
-        case .signIn:
-            return Color(red: 0.28, green: 0.45, blue: 0.34)
-        case .signUp:
-            return Color(red: 0.56, green: 0.35, blue: 0.14)
-        case .resetPassword, .confirmResetPassword:
-            return Color(red: 0.48, green: 0.35, blue: 0.19)
         }
     }
 
@@ -240,51 +240,29 @@ struct CognitoAuthView: View {
             }
         }
     }
+}
 
-    private var backgroundGradientColors: [Color] {
-        if colorScheme == .dark {
-            return [Color(red: 0.09, green: 0.10, blue: 0.10), Color(red: 0.13, green: 0.16, blue: 0.14)]
+struct LinearTextField: View {
+    let placeholder: LocalizedStringKey
+    @Binding var text: String
+    var isSecure: Bool = false
+
+    var body: some View {
+        Group {
+            if isSecure {
+                SecureField(placeholder, text: $text)
+            } else {
+                TextField(placeholder, text: $text)
+            }
         }
-
-        return [Color(red: 0.97, green: 0.93, blue: 0.85), Color(red: 0.92, green: 0.96, blue: 0.92)]
+        .linearInputField()
     }
+}
 
-    private var titleColor: Color {
-        colorScheme == .dark ? Color(uiColor: .label) : Color(red: 0.16, green: 0.16, blue: 0.13)
-    }
-
-    private var subtitleColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondaryLabel) : Color(red: 0.32, green: 0.32, blue: 0.28)
-    }
-
-    private var iconColor: Color {
-        colorScheme == .dark ? Color(red: 0.83, green: 0.66, blue: 0.42) : Color(red: 0.39, green: 0.27, blue: 0.16)
-    }
-
-    private var footerColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondaryLabel) : Color(red: 0.34, green: 0.26, blue: 0.16)
-    }
-
-    private var inputFillColor: Color {
-        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color.white.opacity(0.95)
-    }
-
-    private var inputBorderColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.16) : Color.black.opacity(0.08)
-    }
-
-    private func inputField<Content: View>(_ content: Content) -> some View {
-        content
-            .foregroundStyle(Color(uiColor: .label))
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, minHeight: 56)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(inputFillColor)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(inputBorderColor, lineWidth: 1)
-            )
+extension View {
+    func linearGhostButton() -> some View {
+        self
+            .font(LinearDesign.Typography.small)
+            .foregroundStyle(LinearDesign.Colors.accentViolet)
     }
 }
