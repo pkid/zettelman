@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Zettelman for iPhone | Scan appointment notes and save them fast</title>
-  <meta name="description" content="Zettelman is an iPhone app that scans handwritten or printed appointment notes, extracts the important details, and helps you save reminders and calendar entries in seconds.">
+  <title>Zettelman for iPhone | AI event scanner from photos and emails</title>
+  <meta name="description" content="Zettelman extracts event details from doctor slips, screenshots, emails, and notes, then creates reminders or calendar events on iPhone in seconds.">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#0f1011">
   <link rel="canonical" href="https://pkid.github.io/zettelman/en/">
@@ -12,13 +12,75 @@
   <link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/">
   <link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Zettelman for iPhone | Scan appointment notes and save them fast">
-  <meta property="og:description" content="Capture a note, extract the appointment details, then add reminders and calendar entries with less manual typing.">
+  <meta property="og:title" content="Zettelman for iPhone | AI event scanner from photos and emails">
+  <meta property="og:description" content="Capture a doctor slip, email screenshot, invitation, or note, extract event details, and save a reminder or calendar event in seconds.">
   <meta property="og:url" content="https://pkid.github.io/zettelman/en/">
   <meta property="og:site_name" content="Zettelman">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Zettelman for iPhone | Scan appointment notes and save them fast">
-  <meta name="twitter:description" content="Capture appointment notes, extract the details, and keep your schedule organized on iPhone.">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Zettelman for iPhone | AI event scanner from photos and emails">
+  <meta name="twitter:description" content="Turn event information from images, screenshots, and emails into reminders and calendar events on iPhone.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Zettelman",
+      "operatingSystem": "iOS",
+      "applicationCategory": "ProductivityApplication",
+      "applicationSubCategory": "Calendar",
+      "inLanguage": "en",
+      "url": "https://pkid.github.io/zettelman/en/",
+      "description": "Zettelman extracts event details from photos, screenshots, emails, and notes, then helps you create reminders and calendar events.",
+      "featureList": [
+        "Scan event details from photos and screenshots",
+        "Extract date, time, location, and purpose automatically",
+        "Review and edit extracted fields before saving",
+        "Create reminders and optional calendar events",
+        "Use the app in English and German"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "sameAs": [
+        "https://github.com/pkid/zettelman"
+      ]
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does Zettelman only work for doctor slips?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Zettelman also works with email screenshots, invitations, letters, and other notes that include event details."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I edit extracted details before saving?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You can review and adjust parsed fields such as date, time, location, and title before you save."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can it create both reminders and calendar events?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You can save an item as a reminder and optionally add it to your calendar."
+          }
+        }
+      ]
+    }
+  </script>
   <style>
     :root {
       color-scheme: dark;
@@ -91,7 +153,43 @@
       padding: 0;
       color: var(--muted);
     }
+    ol {
+      margin: 0 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
     li + li { margin-top: 10px; }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .faq-item + .faq-item {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+    .faq-item h3 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+    .faq-item p {
+      margin: 0;
+      color: var(--muted);
+    }
     .actions {
       display: flex;
       gap: 12px;
@@ -129,24 +227,67 @@
       <span>Zettelman</span>
       <span><a href="/zettelman/de/">Deutsch</a></span>
     </div>
-    <div class="eyebrow">iPhone appointment organizer</div>
-    <h1>Scan an appointment note and turn it into a saved event.</h1>
-    <p class="lead">Zettelman helps you capture handwritten or printed appointment notes, extract the essential details, and keep everything organized with reminders and calendar integration.</p>
+    <div class="eyebrow">AI event scanner for iPhone</div>
+    <h1>From doctor slip to email screenshot, save any event in seconds.</h1>
+    <p class="lead">Zettelman turns event details from images into structured reminders and optional calendar entries. Capture once, confirm quickly, and skip repetitive manual typing.</p>
+    <div class="chips" aria-label="Supported sources">
+      <span class="chip">Doctor slips</span>
+      <span class="chip">Email screenshots</span>
+      <span class="chip">Invitation cards</span>
+      <span class="chip">Letters and notes</span>
+      <span class="chip">Printed schedules</span>
+    </div>
 
     <section class="section">
       <h2>What Zettelman does</h2>
       <ul>
-        <li>Capture a medical or appointment note with your iPhone camera</li>
-        <li>Extract date, time, location, and purpose from the note</li>
-        <li>Review the parsed details before saving</li>
-        <li>Create reminders and optionally add the appointment to your calendar</li>
+        <li>Capture event info with your iPhone camera or from existing photos and screenshots</li>
+        <li>Extract date, time, location, title, and context automatically</li>
+        <li>Review and edit parsed details before saving</li>
+        <li>Create reminders and optionally add the event to your calendar</li>
         <li>Use the app in English or German</li>
       </ul>
     </section>
 
     <section class="section">
+      <h2>High-intent use cases</h2>
+      <ul>
+        <li>Medical appointments and follow-up visits</li>
+        <li>School meetings and parent-teacher conferences</li>
+        <li>Embassy, visa, and government office appointments</li>
+        <li>Vehicle service and inspection bookings</li>
+        <li>Invitations, event flyers, and printed schedules</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>How it works</h2>
+      <ol>
+        <li>Capture a photo or pick a screenshot that contains event details.</li>
+        <li>Zettelman extracts the important fields automatically.</li>
+        <li>Review, edit if needed, then save as reminder and optional calendar event.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>FAQ</h2>
+      <div class="faq-item">
+        <h3>Does Zettelman only work for doctor slips?</h3>
+        <p>No. It also works with email screenshots, invitations, letters, and other notes that include event details.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Can I edit extracted details before saving?</h3>
+        <p>Yes. You can adjust parsed fields like date, time, location, and event title before you save.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Can it create both reminders and calendar events?</h3>
+        <p>Yes. You can save a reminder and optionally add the same entry to your calendar.</p>
+      </div>
+    </section>
+
+    <section class="section">
       <h2>Who it is for</h2>
-      <p class="lead">Zettelman is useful for people who receive appointment slips from clinics, hospitals, practices, or offices and want a faster way to digitize them on iPhone without manually retyping every detail.</p>
+      <p class="lead">Zettelman is for anyone who gets event information in daily life and wants to digitize it on iPhone quickly, accurately, and with much less typing.</p>
     </section>
 
     <div class="actions">

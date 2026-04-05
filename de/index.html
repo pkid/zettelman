@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Zettelman für iPhone | Terminzettel scannen und schnell speichern</title>
-  <meta name="description" content="Zettelman ist eine iPhone-App, die handschriftliche oder gedruckte Terminzettel scannt, wichtige Angaben extrahiert und Erinnerungen oder Kalendereinträge in wenigen Sekunden vorbereitet.">
+  <title>Zettelman für iPhone | KI-Terminscanner für Fotos und E-Mails</title>
+  <meta name="description" content="Zettelman extrahiert Terminangaben aus Fotos, Screenshots, E-Mails und Notizen und erstellt auf dem iPhone in Sekunden Erinnerungen oder Kalendereinträge.">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#0f1011">
   <link rel="canonical" href="https://pkid.github.io/zettelman/de/">
@@ -12,13 +12,75 @@
   <link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/">
   <link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Zettelman für iPhone | Terminzettel scannen und schnell speichern">
-  <meta property="og:description" content="Zettel fotografieren, Terminangaben extrahieren und Erinnerungen oder Kalendereinträge mit weniger Tipparbeit speichern.">
+  <meta property="og:title" content="Zettelman für iPhone | KI-Terminscanner für Fotos und E-Mails">
+  <meta property="og:description" content="Arztzettel, E-Mail-Screenshot, Einladung oder Notiz erfassen, Terminangaben extrahieren und in Sekunden als Erinnerung oder Kalendereintrag speichern.">
   <meta property="og:url" content="https://pkid.github.io/zettelman/de/">
   <meta property="og:site_name" content="Zettelman">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Zettelman für iPhone | Terminzettel scannen und schnell speichern">
-  <meta name="twitter:description" content="Terminzettel erfassen, Angaben extrahieren und Termine auf dem iPhone besser organisieren.">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Zettelman für iPhone | KI-Terminscanner für Fotos und E-Mails">
+  <meta name="twitter:description" content="Termindetails aus Bildern, Screenshots und E-Mails erfassen und als Erinnerungen oder Kalendereinträge auf dem iPhone speichern.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Zettelman",
+      "operatingSystem": "iOS",
+      "applicationCategory": "ProductivityApplication",
+      "applicationSubCategory": "Calendar",
+      "inLanguage": "de",
+      "url": "https://pkid.github.io/zettelman/de/",
+      "description": "Zettelman extrahiert Terminangaben aus Fotos, Screenshots, E-Mails und Notizen und hilft beim Erstellen von Erinnerungen und Kalendereinträgen.",
+      "featureList": [
+        "Termindetails aus Fotos und Screenshots erfassen",
+        "Datum, Uhrzeit, Ort und Anlass automatisch extrahieren",
+        "Erkannte Felder vor dem Speichern prüfen und bearbeiten",
+        "Erinnerungen und optionale Kalendereinträge erstellen",
+        "Die App auf Deutsch und Englisch verwenden"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "sameAs": [
+        "https://github.com/pkid/zettelman"
+      ]
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Funktioniert Zettelman nur für Arztzettel?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nein. Zettelman funktioniert auch mit E-Mail-Screenshots, Einladungen, Briefen und anderen Notizen mit Terminangaben."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kann ich erkannte Angaben vor dem Speichern bearbeiten?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Du kannst Felder wie Datum, Uhrzeit, Ort und Titel vor dem Speichern prüfen und anpassen."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kann ich sowohl Erinnerungen als auch Kalendereinträge erstellen?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Du kannst den Termin als Erinnerung speichern und optional in deinen Kalender übernehmen."
+          }
+        }
+      ]
+    }
+  </script>
   <style>
     :root {
       color-scheme: dark;
@@ -91,7 +153,43 @@
       padding: 0;
       color: var(--muted);
     }
+    ol {
+      margin: 0 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
     li + li { margin-top: 10px; }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .faq-item + .faq-item {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+    .faq-item h3 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+    .faq-item p {
+      margin: 0;
+      color: var(--muted);
+    }
     .actions {
       display: flex;
       gap: 12px;
@@ -129,24 +227,67 @@
       <span>Zettelman</span>
       <span><a href="/zettelman/en/">English</a></span>
     </div>
-    <div class="eyebrow">iPhone Termin-Organizer</div>
-    <h1>Terminzettel scannen und als gespeicherten Termin übernehmen.</h1>
-    <p class="lead">Zettelman hilft dabei, handschriftliche oder gedruckte Terminzettel zu erfassen, die wichtigsten Angaben automatisch zu extrahieren und alles mit Erinnerungen und Kalenderintegration zu organisieren.</p>
+    <div class="eyebrow">KI-Terminscanner für iPhone</div>
+    <h1>Vom Arztzettel bis zum E-Mail-Screenshot: Termine in Sekunden speichern.</h1>
+    <p class="lead">Zettelman wandelt Terminangaben aus Bildern in strukturierte Erinnerungen und optionale Kalendereinträge um. Einmal erfassen, kurz prüfen, direkt speichern.</p>
+    <div class="chips" aria-label="Unterstützte Quellen">
+      <span class="chip">Arztzettel</span>
+      <span class="chip">E-Mail-Screenshots</span>
+      <span class="chip">Einladungskarten</span>
+      <span class="chip">Briefe und Notizen</span>
+      <span class="chip">Gedruckte Pläne</span>
+    </div>
 
     <section class="section">
       <h2>Was Zettelman macht</h2>
       <ul>
-        <li>Medizinische oder andere Terminzettel mit der iPhone-Kamera erfassen</li>
-        <li>Datum, Uhrzeit, Ort und Anlass aus dem Zettel extrahieren</li>
-        <li>Die erkannten Angaben vor dem Speichern prüfen</li>
+        <li>Termininfos mit der iPhone-Kamera oder aus vorhandenen Fotos und Screenshots erfassen</li>
+        <li>Datum, Uhrzeit, Ort, Titel und Kontext automatisch extrahieren</li>
+        <li>Die erkannten Angaben vor dem Speichern prüfen und bearbeiten</li>
         <li>Erinnerungen anlegen und Termine optional in den Kalender übernehmen</li>
         <li>Die App auf Englisch oder Deutsch verwenden</li>
       </ul>
     </section>
 
     <section class="section">
+      <h2>Typische Einsatzfälle</h2>
+      <ul>
+        <li>Arzttermine und Nachsorgetermine</li>
+        <li>Schulgespräche und Elternabende</li>
+        <li>Botschafts-, Visa- und Behördentermine</li>
+        <li>Werkstatt- und Inspektionsbuchungen</li>
+        <li>Einladungen, Veranstaltungsflyer und gedruckte Zeitpläne</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>So funktioniert es</h2>
+      <ol>
+        <li>Foto aufnehmen oder Screenshot mit Terminangaben auswählen.</li>
+        <li>Zettelman extrahiert die wichtigsten Felder automatisch.</li>
+        <li>Angaben prüfen, bei Bedarf anpassen und als Erinnerung sowie optional im Kalender speichern.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>FAQ</h2>
+      <div class="faq-item">
+        <h3>Funktioniert Zettelman nur für Arztzettel?</h3>
+        <p>Nein. Die App funktioniert auch mit E-Mail-Screenshots, Einladungen, Briefen und anderen Notizen mit Terminangaben.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Kann ich erkannte Angaben vor dem Speichern bearbeiten?</h3>
+        <p>Ja. Du kannst Felder wie Datum, Uhrzeit, Ort und Titel vor dem Speichern prüfen und anpassen.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Kann ich sowohl Erinnerungen als auch Kalendereinträge erstellen?</h3>
+        <p>Ja. Du kannst den Termin als Erinnerung speichern und optional in deinen Kalender übernehmen.</p>
+      </div>
+    </section>
+
+    <section class="section">
       <h2>Für wen die App gedacht ist</h2>
-      <p class="lead">Zettelman ist praktisch für Menschen, die Terminzettel aus Kliniken, Arztpraxen, Krankenhäusern oder Büros erhalten und diese auf dem iPhone schneller digitalisieren möchten, ohne alles manuell abzutippen.</p>
+      <p class="lead">Zettelman ist für alle, die Terminangaben aus unterschiedlichen Quellen auf dem iPhone schnell, zuverlässig und mit deutlich weniger Tipparbeit digitalisieren möchten.</p>
     </section>
 
     <div class="actions">

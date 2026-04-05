@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Zettelman | AI appointment note scanner for iPhone</title>
-  <meta name="description" content="Zettelman turns handwritten or printed appointment notes into structured appointments on iPhone, with reminders and calendar support. Available in English and German.">
+  <title>Zettelman | AI event scanner for iPhone (English + German)</title>
+  <meta name="description" content="Zettelman turns event details from photos, screenshots, emails, and notes into reminders and calendar entries on iPhone. Available in English and German.">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#0f1011">
   <link rel="canonical" href="https://pkid.github.io/zettelman/">
@@ -12,13 +12,60 @@
   <link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/">
   <link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Zettelman | AI appointment note scanner for iPhone">
-  <meta property="og:description" content="Scan a note, extract the appointment, and save it with reminders and calendar support.">
+  <meta property="og:title" content="Zettelman | AI event scanner for iPhone (English + German)">
+  <meta property="og:description" content="Capture event details from images, screenshots, emails, and notes, then save reminders and calendar events on iPhone.">
   <meta property="og:url" content="https://pkid.github.io/zettelman/">
   <meta property="og:site_name" content="Zettelman">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Zettelman | AI appointment note scanner for iPhone">
-  <meta name="twitter:description" content="Scan appointment notes, extract details, and save them with reminders and calendar support.">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Zettelman | AI event scanner for iPhone (English + German)">
+  <meta name="twitter:description" content="Turn event details from photos, screenshots, emails, and notes into reminders and calendar entries on iPhone.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Zettelman",
+      "url": "https://pkid.github.io/zettelman/",
+      "inLanguage": [
+        "en",
+        "de"
+      ],
+      "hasPart": [
+        {
+          "@type": "WebPage",
+          "url": "https://pkid.github.io/zettelman/en/",
+          "name": "Zettelman English SEO page",
+          "inLanguage": "en"
+        },
+        {
+          "@type": "WebPage",
+          "url": "https://pkid.github.io/zettelman/de/",
+          "name": "Zettelman deutsche SEO-Seite",
+          "inLanguage": "de"
+        }
+      ]
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Zettelman",
+      "operatingSystem": "iOS",
+      "applicationCategory": "ProductivityApplication",
+      "applicationSubCategory": "Calendar",
+      "url": "https://pkid.github.io/zettelman/",
+      "description": "Zettelman extracts event details from photos, screenshots, emails, and notes and helps users save reminders and calendar events on iPhone.",
+      "availableLanguage": [
+        "English",
+        "German"
+      ],
+      "sameAs": [
+        "https://github.com/pkid/zettelman"
+      ]
+    }
+  </script>
   <style>
     :root {
       color-scheme: dark;
@@ -60,6 +107,29 @@
       max-width: 760px;
       color: var(--muted);
       font-size: clamp(18px, 2.1vw, 22px);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .section-title {
+      margin: 44px 0 14px;
+      font-size: 30px;
+      letter-spacing: -0.02em;
     }
     .grid {
       display: grid;
@@ -113,25 +183,47 @@
 <body>
   <main>
     <div class="eyebrow">Zettelman</div>
-    <h1>Turn appointment notes into organized events.</h1>
-    <p class="lead">Zettelman is an iPhone app that captures handwritten or printed medical and appointment notes, extracts the important details, and helps you save them with reminders and calendar support.</p>
+    <h1>Turn event details from any image into organized reminders and calendar events.</h1>
+    <p class="lead">Zettelman is an iPhone app for people who receive event details in everyday formats such as doctor slips, email screenshots, invitation cards, and printed notes.</p>
+    <div class="chips" aria-label="Core capabilities">
+      <span class="chip">Image-to-event extraction</span>
+      <span class="chip">Reminder + calendar flow</span>
+      <span class="chip">English and German support</span>
+      <span class="chip">Mobile-first on iPhone</span>
+    </div>
+    <h2 class="section-title">Why Zettelman stands out</h2>
+    <section class="grid" aria-label="Differentiators">
+      <article class="card">
+        <h2>Beyond doctor slips</h2>
+        <p>Use one workflow for many sources: email screenshots, invitations, letters, printed schedules, and appointment notes.</p>
+      </article>
+      <article class="card">
+        <h2>Human-in-the-loop</h2>
+        <p>AI extraction is fast, but you stay in control: review and edit important fields before saving.</p>
+      </article>
+      <article class="card">
+        <h2>Bilingual SEO pages</h2>
+        <p>Dedicated English and German pages improve discoverability for both language audiences.</p>
+      </article>
+    </section>
+    <h2 class="section-title">Choose your language</h2>
     <section class="grid" aria-label="Language selection">
       <article class="card">
         <h2>English</h2>
-        <p>Use the English landing page for search engines and visitors looking for an AI-powered appointment scanner for iPhone.</p>
+        <p>Use the English landing page for visitors who want to create calendar events from photos, screenshots, emails, and notes on iPhone.</p>
         <ul>
-          <li>Scan handwritten or printed appointment notes</li>
-          <li>Extract date, place, and purpose automatically</li>
-          <li>Save reminders and add appointments to your calendar</li>
+          <li>Capture event details from camera photos or existing screenshots</li>
+          <li>Extract date, time, place, and purpose automatically</li>
+          <li>Save reminders and optionally create calendar events</li>
         </ul>
         <a class="button" href="/zettelman/en/">Open English page</a>
       </article>
       <article class="card">
         <h2>Deutsch</h2>
-        <p>Nutze die deutsche Landingpage für Suchmaschinen und Besucher, die eine iPhone-App zum Erfassen von Terminzetteln suchen.</p>
+        <p>Nutze die deutsche Landingpage für Besucher, die Termine aus Fotos, E-Mails, Screenshots oder Notizen auf dem iPhone erfassen möchten.</p>
         <ul>
-          <li>Handschriftliche oder gedruckte Terminzettel scannen</li>
-          <li>Datum, Ort und Anlass automatisch extrahieren</li>
+          <li>Terminangaben aus Kamera-Fotos oder vorhandenen Screenshots erfassen</li>
+          <li>Datum, Uhrzeit, Ort und Anlass automatisch extrahieren</li>
           <li>Erinnerungen speichern und Termine in den Kalender übernehmen</li>
         </ul>
         <a class="button" href="/zettelman/de/">Zur deutschen Seite</a>
