@@ -7,7 +7,7 @@
     " " : {
 
     },
-    "%lld/5 words" : {
+    "%@/month" : {
 
     },
     "analysis.timeout.detail" : {
@@ -1196,6 +1196,12 @@
         }
       }
     },
+    "Choose a monthly upload plan." : {
+
+    },
+    "Close" : {
+
+    },
     "common.cancel" : {
       "localizations" : {
         "de" : {
@@ -1275,6 +1281,9 @@
           }
         }
       }
+    },
+    "Current plan" : {
+
     },
     "draft.location.unknown" : {
       "localizations" : {
@@ -1356,6 +1365,15 @@
         }
       }
     },
+    "Free" : {
+
+    },
+    "Included by default." : {
+
+    },
+    "Monthly uploads" : {
+
+    },
     "notification.body.template" : {
       "localizations" : {
         "de" : {
@@ -1403,6 +1421,18 @@
           }
         }
       }
+    },
+    "OK" : {
+
+    },
+    "Processing..." : {
+
+    },
+    "Product info is still loading." : {
+
+    },
+    "Restore purchases" : {
+
     },
     "save.confirm.disabled" : {
       "localizations" : {
@@ -1755,6 +1785,21 @@
           }
         }
       }
+    },
+    "Subscribe" : {
+
+    },
+    "Subscription" : {
+
+    },
+    "Upgrade" : {
+
+    },
+    "Upgrade plan" : {
+
+    },
+    "Upload Plans" : {
+
     }
   },
   "version" : "1.0"

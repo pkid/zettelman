@@ -99,11 +99,24 @@ final class ZettelS3Service {
 
     func currentUserContext() async throws -> UserStorageContext {
         var email = ""
+        var incognitoEnabled = false
+        var debugFlagEnabled = false
 
         let attributes = try await Amplify.Auth.fetchUserAttributes()
         for attribute in attributes {
             if attribute.key == .email {
                 email = attribute.value
+            }
+
+            let key = attribute.key.rawValue.lowercased()
+            if key == "custom:incognito" {
+                incognitoEnabled = parseBooleanAttribute(attribute.value)
+            } else if key == "custom:debug"
+                || key == "custom:debug_flag"
+                || key == "custom:debugmode"
+                || key == "custom:debug_mode"
+                || key == "custom:is_debug" {
+                debugFlagEnabled = parseBooleanAttribute(attribute.value)
             }
         }
 
@@ -114,7 +127,8 @@ final class ZettelS3Service {
 
         return UserStorageContext(
             email: email,
-            emailFolder: sanitize(email, lowercase: false)
+            emailFolder: sanitize(email, lowercase: false),
+            bypassUploadQuota: incognitoEnabled || debugFlagEnabled
         )
     }
 
@@ -142,6 +156,16 @@ final class ZettelS3Service {
         formatter.dateFormat = "yyMMddHHmmss"
         formatter.timeZone = .current
         return formatter.string(from: Date())
+    }
+
+    private func parseBooleanAttribute(_ value: String) -> Bool {
+        let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        switch normalized {
+        case "1", "true", "yes", "y", "on":
+            return true
+        default:
+            return false
+        }
     }
 
     private func normalizedStorageError(_ error: Error, operation: String) -> Error {

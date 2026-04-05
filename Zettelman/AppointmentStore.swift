@@ -2,6 +2,7 @@ import Foundation
 import EventKit
 import UIKit
 import UserNotifications
+import Combine
 
 @MainActor
 final class AppointmentStore: ObservableObject {
@@ -10,25 +11,41 @@ final class AppointmentStore: ObservableObject {
     @Published var isSaving = false
     @Published var errorMessage: String?
     @Published var saveConfirmation: SaveConfirmation?
+    @Published private(set) var uploadPlan: UploadPlan
+    @Published private(set) var uploadsUsedThisMonth: Int = 0
+    @Published private(set) var uploadsRemainingThisMonth: Int
+    @Published private(set) var isUploadQuotaBypassed = false
 
     private let s3Service: ZettelS3Service
     private let analysisService: ZettelAnalysisService
     private let reminderService: AppointmentReminderService
     private let calendarService: AppointmentCalendarService
+    private let subscriptionManager: SubscriptionManager
+    private let uploadQuotaTracker: UploadQuotaTracker
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private var hasLoaded = false
+    private var currentUserEmail: String?
+    private var cancellables: Set<AnyCancellable> = []
 
     init(
         s3Service: ZettelS3Service = ZettelS3Service(),
         analysisService: ZettelAnalysisService = ZettelAnalysisService(),
         reminderService: AppointmentReminderService = AppointmentReminderService(),
-        calendarService: AppointmentCalendarService = AppointmentCalendarService()
+        calendarService: AppointmentCalendarService = AppointmentCalendarService(),
+        subscriptionManager: SubscriptionManager? = nil,
+        uploadQuotaTracker: UploadQuotaTracker = UploadQuotaTracker()
     ) {
+        let resolvedSubscriptionManager = subscriptionManager ?? SubscriptionManager()
+
         self.s3Service = s3Service
         self.analysisService = analysisService
         self.reminderService = reminderService
         self.calendarService = calendarService
+        self.subscriptionManager = resolvedSubscriptionManager
+        self.uploadQuotaTracker = uploadQuotaTracker
+        self.uploadPlan = resolvedSubscriptionManager.currentPlan
+        self.uploadsRemainingThisMonth = resolvedSubscriptionManager.currentPlan.monthlyUploadLimit
 
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -38,6 +55,8 @@ final class AppointmentStore: ObservableObject {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         self.decoder = decoder
+
+        bindSubscriptionState()
     }
 
     func loadAppointments(forceRefresh: Bool = false) async {
@@ -45,6 +64,7 @@ final class AppointmentStore: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        await subscriptionManager.refresh()
 
         if let cachedAppointments = loadFromDisk() {
             appointments = sort(cachedAppointments)
@@ -62,12 +82,27 @@ final class AppointmentStore: ObservableObject {
         }
 
         await reminderService.syncReminders(with: appointments)
+        await refreshUploadUsage()
         isLoading = false
     }
 
     func createDraft(from image: UIImage) async throws -> AppointmentDraft {
+        let context = try await s3Service.currentUserContext()
+        currentUserEmail = context.email
+        isUploadQuotaBypassed = context.bypassUploadQuota
+
+        let currentUsage = uploadQuotaTracker.currentUsage(for: context.email)
+        uploadsUsedThisMonth = currentUsage
+        recalculateUploadAllowance()
+
+        guard isUploadQuotaBypassed || currentUsage < uploadPlan.monthlyUploadLimit else {
+            throw UploadQuotaError(plan: uploadPlan)
+        }
+
         let previewData = image.jpegData(compressionQuality: 0.72)
         let uploadedZettel = try await s3Service.uploadZettelImage(image)
+        uploadsUsedThisMonth = uploadQuotaTracker.incrementUsage(for: context.email)
+        recalculateUploadAllowance()
         let analysis = try await analysisService.analyze(uploadedZettel: uploadedZettel, s3Service: s3Service)
 
         return AppointmentDraft(
@@ -142,6 +177,37 @@ final class AppointmentStore: ObservableObject {
         }
     }
 
+    func refreshSubscriptionState() async {
+        await subscriptionManager.refresh()
+        await refreshUploadUsage()
+    }
+
+    func purchase(plan: UploadPlan) async throws {
+        try await subscriptionManager.purchase(plan: plan)
+        await refreshUploadUsage()
+    }
+
+    func restorePurchases() async throws {
+        try await subscriptionManager.restorePurchases()
+        await refreshUploadUsage()
+    }
+
+    var uploadLimitThisMonth: Int {
+        uploadPlan.monthlyUploadLimit
+    }
+
+    var canUploadMoreThisMonth: Bool {
+        isUploadQuotaBypassed || uploadsRemainingThisMonth > 0
+    }
+
+    func planPriceLabel(for plan: UploadPlan) -> String {
+        subscriptionManager.displayPrice(for: plan)
+    }
+
+    func canPurchase(_ plan: UploadPlan) -> Bool {
+        subscriptionManager.canPurchase(plan)
+    }
+
     func reset() {
         appointments = []
         errorMessage = nil
@@ -149,6 +215,11 @@ final class AppointmentStore: ObservableObject {
         isLoading = false
         isSaving = false
         hasLoaded = false
+        currentUserEmail = nil
+        uploadsUsedThisMonth = 0
+        isUploadQuotaBypassed = false
+        uploadPlan = subscriptionManager.currentPlan
+        recalculateUploadAllowance()
 
         let fileManager = FileManager.default
         if fileManager.fileExists(atPath: cacheURL.path) {
@@ -157,6 +228,40 @@ final class AppointmentStore: ObservableObject {
 
         Task {
             await reminderService.clearAllReminders()
+        }
+    }
+
+    private func bindSubscriptionState() {
+        subscriptionManager.$currentPlan
+            .sink { [weak self] plan in
+                guard let self else { return }
+                self.uploadPlan = plan
+                self.recalculateUploadAllowance()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func recalculateUploadAllowance() {
+        uploadsRemainingThisMonth = max(0, uploadPlan.monthlyUploadLimit - uploadsUsedThisMonth)
+    }
+
+    private func refreshUploadUsage() async {
+        if let currentUserEmail {
+            uploadsUsedThisMonth = uploadQuotaTracker.currentUsage(for: currentUserEmail)
+            recalculateUploadAllowance()
+            return
+        }
+
+        do {
+            let context = try await s3Service.currentUserContext()
+            currentUserEmail = context.email
+            isUploadQuotaBypassed = context.bypassUploadQuota
+            uploadsUsedThisMonth = uploadQuotaTracker.currentUsage(for: context.email)
+            recalculateUploadAllowance()
+        } catch {
+            uploadsUsedThisMonth = 0
+            isUploadQuotaBypassed = false
+            recalculateUploadAllowance()
         }
     }
 

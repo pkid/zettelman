@@ -13,6 +13,7 @@ struct AddAppointmentView: View {
     @State private var isAnalyzing = false
     @State private var alertMessage = ""
     @State private var showingAlert = false
+    @State private var showingPlans = false
 
     var body: some View {
         NavigationStack {
@@ -23,6 +24,7 @@ struct AddAppointmentView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
                         heroCard
+                        uploadQuotaCard
                         captureControls
                     }
                     .padding(LinearDesign.Spacing.medium)
@@ -67,10 +69,16 @@ struct AddAppointmentView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingPlans) {
+            UploadPlansView(store: store)
+        }
         .alert("appointment.add.alert.title", isPresented: $showingAlert) {
             Button("common.ok", role: .cancel) { }
         } message: {
             Text(alertMessage)
+        }
+        .task {
+            await store.refreshSubscriptionState()
         }
     }
 
@@ -120,6 +128,46 @@ struct AddAppointmentView: View {
         }
     }
 
+    private var uploadQuotaCard: some View {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.small) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
+                    Text("Monthly uploads")
+                        .font(LinearDesign.Typography.captionMedium)
+                        .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                    Text(verbatim: store.isUploadQuotaBypassed ? "Unlimited (debug)" : "\(store.uploadsRemainingThisMonth) left this month")
+                        .font(LinearDesign.Typography.bodyMedium)
+                        .foregroundStyle(LinearDesign.Colors.primaryText)
+                }
+
+                Spacer()
+
+                if !store.isUploadQuotaBypassed {
+                    Button("Upgrade") {
+                        showingPlans = true
+                    }
+                    .font(LinearDesign.Typography.labelMedium)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
+                }
+            }
+
+            ProgressView(value: Double(store.uploadsUsedThisMonth), total: Double(store.uploadLimitThisMonth))
+                .tint(LinearDesign.Colors.accentViolet)
+
+            if store.isUploadQuotaBypassed {
+                Text(verbatim: "\(store.uploadsUsedThisMonth) uploads tracked this month (quota bypass enabled)")
+                    .font(LinearDesign.Typography.caption)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+            } else {
+                Text(verbatim: "\(store.uploadsUsedThisMonth)/\(store.uploadLimitThisMonth) used (\(store.uploadPlan.title))")
+                    .font(LinearDesign.Typography.caption)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+            }
+        }
+        .padding(LinearDesign.Spacing.medium)
+        .linearCard()
+    }
+
     private func captureButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
@@ -167,11 +215,21 @@ struct AddAppointmentView: View {
     }
 
     private var analyzeButtonBar: some View {
-        analyzeButton
-            .padding(.horizontal, LinearDesign.Spacing.medium)
-            .padding(.top, LinearDesign.Spacing.small)
-            .padding(.bottom, LinearDesign.Spacing.small)
-            .background(LinearDesign.Colors.panelDark)
+        VStack(spacing: LinearDesign.Spacing.small) {
+            analyzeButton
+
+            if !store.canUploadMoreThisMonth {
+                Button("Upgrade plan") {
+                    showingPlans = true
+                }
+                .font(LinearDesign.Typography.labelMedium)
+                .foregroundStyle(LinearDesign.Colors.accentViolet)
+            }
+        }
+        .padding(.horizontal, LinearDesign.Spacing.medium)
+        .padding(.top, LinearDesign.Spacing.small)
+        .padding(.bottom, LinearDesign.Spacing.small)
+        .background(LinearDesign.Colors.panelDark)
     }
 
     private func analyze() {
@@ -184,6 +242,11 @@ struct AddAppointmentView: View {
                 let draft = try await store.createDraft(from: selectedImage)
                 isAnalyzing = false
                 pendingDraft = draft
+            } catch let uploadLimitError as UploadQuotaError {
+                isAnalyzing = false
+                alertMessage = uploadLimitError.localizedDescription
+                showingAlert = true
+                showingPlans = true
             } catch {
                 isAnalyzing = false
                 alertMessage = error.localizedDescription
@@ -193,6 +256,6 @@ struct AddAppointmentView: View {
     }
 
     private var isAnalyzeButtonDisabled: Bool {
-        selectedImage == nil || isAnalyzing
+        selectedImage == nil || isAnalyzing || !store.canUploadMoreThisMonth
     }
 }

@@ -85,7 +85,7 @@ struct AppointmentConfirmationView: View {
             )
             .textInputAutocapitalization(.words)
 
-            Text("\(wordCount(of: editedDraft.what))/5 words")
+            Text(verbatim: "\(wordCount(of: editedDraft.what))/5 words")
                 .font(LinearDesign.Typography.caption)
                 .foregroundStyle(wordCount(of: editedDraft.what) > 5 ? LinearDesign.Colors.Semantic.destructive : LinearDesign.Colors.tertiaryText)
                 .frame(maxWidth: .infinity, alignment: .trailing)

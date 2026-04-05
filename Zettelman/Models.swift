@@ -133,6 +133,7 @@ struct ZettelAnalysis: Hashable {
 struct UserStorageContext: Hashable {
     let email: String
     let emailFolder: String
+    let bypassUploadQuota: Bool
 }
 
 enum ZettelmanError: LocalizedError {
