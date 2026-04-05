@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://pkid.github.io/zettelman/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/zettelman/en/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/" />
+  </url>
+  <url>
+    <loc>https://pkid.github.io/zettelman/en/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/zettelman/en/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/" />
+  </url>
+  <url>
+    <loc>https://pkid.github.io/zettelman/de/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/zettelman/en/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/" />
+  </url>
+</urlset>
