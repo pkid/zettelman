@@ -5,7 +5,7 @@ This app follows the same architecture as `trip-manager`:
 1. Cognito User Pool for sign-in/sign-up
 2. Cognito Identity Pool for temporary AWS credentials
 3. S3 for private zettel image storage and appointment manifest storage
-4. Lambda using Claude on Bedrock for image analysis
+4. Lambda using Bedrock vision model for image analysis
 
 ## 1. Cognito and S3
 
@@ -30,13 +30,13 @@ Deploy [lambda_zettel_analysis.py](/Users/yashu/Repos/zettelman/AWS/lambda_zette
 Required environment variables:
 
 - `BUCKET_NAME`: optional; defaults to `zettelman`
-- `MODEL_ID`: optional; defaults to `anthropic.claude-3-5-sonnet-20240620-v1:0`
+- `MODEL_ID`: optional; defaults to `mistral.pixtral-large-2502-v1:0`
 
 Required IAM permissions for the Lambda role:
 
 - `s3:GetObject` on the uploads bucket
 - `s3:PutObject` on the processed output prefix
-- `bedrock:InvokeModel` for the Claude model you choose
+- `bedrock:Converse` (or broader `bedrock:InvokeModel`) for the Bedrock model you choose
 
 Configure an S3 trigger on the same bucket (`zettelman`) for this Lambda:
 

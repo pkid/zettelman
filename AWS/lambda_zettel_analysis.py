@@ -1,8 +1,8 @@
-import base64
 import json
 import os
 import re
 import traceback
+from datetime import datetime
 from typing import Any
 from urllib.parse import unquote_plus
 
@@ -11,7 +11,7 @@ import boto3
 s3_client = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime")
 
-MODEL_ID = os.environ.get("MODEL_ID", "anthropic.claude-3-5-sonnet-20240620-v1:0")
+MODEL_ID = os.environ.get("MODEL_ID", "mistral.pixtral-large-2502-v1:0")
 DEFAULT_BUCKET = os.environ.get("BUCKET_NAME", "zettelman")
 
 
@@ -68,7 +68,7 @@ def handle_s3_trigger(event: dict[str, Any]) -> dict[str, Any]:
             print(f"Processing s3://{bucket}/{s3_key}")
             object_bytes = download_object(bucket, s3_key)
             media_type = guess_media_type(s3_key)
-            model_result = analyze_with_claude(object_bytes, media_type)
+            model_result = analyze_with_model(object_bytes, media_type)
             analysis_key = analysis_output_key(s3_key)
             upload_analysis(bucket, analysis_key, {"source_key": s3_key, **model_result})
             processed += 1
@@ -119,7 +119,7 @@ def handle_direct_request(event: dict[str, Any]) -> dict[str, Any]:
 
     object_bytes = download_object(bucket, s3_key)
     media_type = guess_media_type(s3_key)
-    model_result = analyze_with_claude(object_bytes, media_type)
+    model_result = analyze_with_model(object_bytes, media_type)
 
     return response(200, model_result)
 
@@ -176,7 +176,15 @@ def upload_analysis(bucket: str, key: str, payload: dict[str, Any]) -> None:
     )
 
 
-def analyze_with_claude(object_bytes: bytes, media_type: str) -> dict[str, Any]:
+def image_format_from_media_type(media_type: str) -> str:
+    if media_type == "image/png":
+        return "png"
+    if media_type == "image/webp":
+        return "webp"
+    return "jpeg"
+
+
+def analyze_with_model(object_bytes: bytes, media_type: str) -> dict[str, Any]:
     prompt = """
 You are analyzing an appointment zettel, usually in German (sometimes English or mixed German/English).
 
@@ -189,6 +197,7 @@ Extract exactly these fields:
 
 Rules:
 - Do not invent details that are not visible.
+- Read handwritten digits carefully and digit-by-digit (for example distinguish 7 vs 9).
 - If only a date is visible but no time is visible, set date_time to null.
 - Keep "what" short and concrete.
 - For "with_whom", prefer explicit person names/titles from the zettel (for example "Dr. Mueller").
@@ -208,42 +217,36 @@ Example:
 {"date_time":"2026-03-28T09:30:00","what":"Dermatology follow-up","where":"City Clinic, Hauptstrasse 12, 80331 Muenchen","with_whom":"Dr. Mueller","confidence":0.88}
 """.strip()
 
-    payload = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 512,
-        "messages": [
+    response = bedrock_runtime.converse(
+        modelId=MODEL_ID,
+        messages=[
             {
                 "role": "user",
                 "content": [
+                    {"text": prompt},
                     {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": base64.b64encode(object_bytes).decode("utf-8"),
-                        },
-                    },
-                    {
-                        "type": "text",
-                        "text": prompt,
+                        "image": {
+                            "format": image_format_from_media_type(media_type),
+                            "source": {"bytes": object_bytes},
+                        }
                     },
                 ],
             }
         ],
-    }
-
-    response = bedrock_runtime.invoke_model(
-        modelId=MODEL_ID,
-        body=json.dumps(payload),
-        contentType="application/json",
-        accept="application/json",
+        inferenceConfig={"maxTokens": 512},
     )
-    response_body = json.loads(response["body"].read())
-    raw_text = response_body["content"][0]["text"]
+    output = response.get("output", {})
+    message = output.get("message", {})
+    content = message.get("content", [])
+    raw_text = next((part.get("text", "") for part in content if isinstance(part, dict) and "text" in part), "")
+    if not raw_text:
+        raise ValueError(f"Model did not return text content: {json.dumps(response)}")
+
     parsed = parse_model_json(raw_text)
+    normalized = normalize_date_time(parsed.get("date_time"))
 
     return {
-        "date_time": parsed.get("date_time"),
+        "date_time": normalized,
         "what": normalize_what(parsed.get("what", "")),
         "where": (parsed.get("where") or "").strip(),
         "with_whom": normalize_with_whom(parsed.get("with_whom", "")),
@@ -270,6 +273,21 @@ def normalize_what(value: str) -> str:
 
 def normalize_with_whom(value: str) -> str:
     return " ".join((value or "").strip().split())
+
+
+def normalize_date_time(value: Any) -> str | None:
+    if not value or not isinstance(value, str):
+        return None
+
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+
+    try:
+        dt = datetime.fromisoformat(cleaned.replace("Z", "+00:00"))
+        return dt.replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        return None
 
 
 def response(status_code: int, body: dict[str, Any]) -> dict[str, Any]:
