@@ -785,13 +785,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zettelman"
+            "value" : "ZettelScan"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zettelman"
+            "value" : "ZettelScan"
           }
         }
       }

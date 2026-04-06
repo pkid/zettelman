@@ -14,15 +14,15 @@
 		4BB5BCB02E5C47E200F3C073 /* AWSCognitoAuthPlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 4BB5BCAF2E5C47E200F3C073 /* AWSCognitoAuthPlugin */; };
 		4BB5BCB22E5C47E200F3C073 /* AWSS3StoragePlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 4BB5BCB12E5C47E200F3C073 /* AWSS3StoragePlugin */; };
 		4BB5BCB42E5C47E200F3C073 /* Amplify in Frameworks */ = {isa = PBXBuildFile; productRef = 4BB5BCB32E5C47E200F3C073 /* Amplify */; };
-			66D117CD066BB7C9E26835A9 /* AddAppointmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D58B9AB77B026A765DC3C6 /* AddAppointmentView.swift */; };
-			78F8D548B252A812FE8CEC40 /* ZettelAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED10117073804AF89C6750B /* ZettelAnalysisService.swift */; };
-			AAAA11112222333344445556 /* LinearDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA11112222333344445555 /* LinearDesign.swift */; };
-			AB12CD34EF56AB78CD90EF13 /* UploadSubscriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB78CD90EF12 /* UploadSubscriptions.swift */; };
-			AB12CD34EF56AB78CD90EF23 /* UploadPlansView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB78CD90EF22 /* UploadPlansView.swift */; };
-			7ED5B6DDB5463DC3754AE122 /* AppointmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12948D913F6B862D6B3F17EF /* AppointmentStore.swift */; };
+		66D117CD066BB7C9E26835A9 /* AddAppointmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D58B9AB77B026A765DC3C6 /* AddAppointmentView.swift */; };
+		78F8D548B252A812FE8CEC40 /* ZettelAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED10117073804AF89C6750B /* ZettelAnalysisService.swift */; };
+		7ED5B6DDB5463DC3754AE122 /* AppointmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12948D913F6B862D6B3F17EF /* AppointmentStore.swift */; };
 		89239CE3D7A2A88EED566616 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8888A31001F4F1DCBD8A2E9D /* Models.swift */; };
 		8AB3B5F541E601FF881F314F /* BackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A248A5FC935CCE55317B950 /* BackendConfiguration.swift */; };
 		972C95D6E3236E472CEE657A /* CognitoAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB504EABB0E7A8FCB5594D05 /* CognitoAuthManager.swift */; };
+		AAAA11112222333344445556 /* LinearDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA11112222333344445555 /* LinearDesign.swift */; };
+		AB12CD34EF56AB78CD90EF13 /* UploadSubscriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB78CD90EF12 /* UploadSubscriptions.swift */; };
+		AB12CD34EF56AB78CD90EF23 /* UploadPlansView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB78CD90EF22 /* UploadPlansView.swift */; };
 		B6788BAA22347D5CE6F2E377 /* AmplifyConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB55E43E61DE3266C12E2FC8 /* AmplifyConfiguration.swift */; };
 		BBC346E086063E40E5CAA7D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE090497290DF32C9780A21 /* ContentView.swift */; };
 		C5729CF95C89805BCE96AA02 /* AppointmentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A44E1FA61C849E9EBDDDA4A5 /* AppointmentListView.swift */; };
@@ -34,29 +34,12 @@
 		FABC123456789ABCDEF01235 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = FABC123456789ABCDEF01234 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		48DFC8C32E45109C002EB4C0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 48DFC8AC2E45109A002EB4C0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 48DFC8B32E45109B002EB4C0;
-			remoteInfo = app_booking;
-		};
-		48DFC8CD2E45109C002EB4C0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 48DFC8AC2E45109A002EB4C0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 48DFC8B32E45109B002EB4C0;
-			remoteInfo = app_booking;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		03D90550725E60A06DE9BB30 /* AppointmentConfirmationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppointmentConfirmationView.swift; sourceTree = "<group>"; };
 		12948D913F6B862D6B3F17EF /* AppointmentStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppointmentStore.swift; sourceTree = "<group>"; };
 		2002D2C2C4DB5B4C9ACDFB89 /* ZettelmanApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ZettelmanApp.swift; sourceTree = "<group>"; };
 		414DFB15DBBD1B1BBFCD4EE2 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		48DFC8B42E45109B002EB4C0 /* Zettelman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zettelman.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		48DFC8B42E45109B002EB4C0 /* ZettelScan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZettelScan.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		48DFC8C22E45109C002EB4C0 /* app_bookingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = app_bookingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48DFC8CC2E45109C002EB4C0 /* app_bookingUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = app_bookingUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D1FFD97A76332CA9BC74CFB /* ZettelS3Service.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ZettelS3Service.swift; sourceTree = "<group>"; };
@@ -65,16 +48,16 @@
 		976DCEB1BD6CB3C94677808B /* AppointmentDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppointmentDetailView.swift; sourceTree = "<group>"; };
 		A1DD4999B3339F752D6A031B /* ImagePickers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImagePickers.swift; sourceTree = "<group>"; };
 		A44E1FA61C849E9EBDDDA4A5 /* AppointmentListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppointmentListView.swift; sourceTree = "<group>"; };
-			ACE090497290DF32C9780A21 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-			AB12CD34EF56AB78CD90EF12 /* UploadSubscriptions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadSubscriptions.swift; sourceTree = "<group>"; };
-			AB12CD34EF56AB78CD90EF22 /* UploadPlansView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadPlansView.swift; sourceTree = "<group>"; };
-			B15AEBDEAD84BBC5A88D25AB /* CognitoAuthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CognitoAuthView.swift; sourceTree = "<group>"; };
+		AAAA11112222333344445555 /* LinearDesign.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinearDesign.swift; sourceTree = "<group>"; };
+		AB12CD34EF56AB78CD90EF12 /* UploadSubscriptions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadSubscriptions.swift; sourceTree = "<group>"; };
+		AB12CD34EF56AB78CD90EF22 /* UploadPlansView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadPlansView.swift; sourceTree = "<group>"; };
+		ACE090497290DF32C9780A21 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B15AEBDEAD84BBC5A88D25AB /* CognitoAuthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CognitoAuthView.swift; sourceTree = "<group>"; };
 		CB504EABB0E7A8FCB5594D05 /* CognitoAuthManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CognitoAuthManager.swift; sourceTree = "<group>"; };
 		D9D58B9AB77B026A765DC3C6 /* AddAppointmentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddAppointmentView.swift; sourceTree = "<group>"; };
 		DB55E43E61DE3266C12E2FC8 /* AmplifyConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AmplifyConfiguration.swift; sourceTree = "<group>"; };
 		DED10117073804AF89C6750B /* ZettelAnalysisService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ZettelAnalysisService.swift; sourceTree = "<group>"; };
-		AAAA11112222333344445555 /* LinearDesign.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinearDesign.swift; sourceTree = "<group>"; };
-		E071023152E10ABC0A914D26 /* amplifyconfiguration.json */ = {isa = PBXFileReference; includeInIndex = 1; path = amplifyconfiguration.json; sourceTree = "<group>"; };
+		E071023152E10ABC0A914D26 /* amplifyconfiguration.json */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json; path = amplifyconfiguration.json; sourceTree = "<group>"; };
 		E97E5D1C3A39C75A05F0575A /* S3ZettelImageView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = S3ZettelImageView.swift; sourceTree = "<group>"; };
 		FABC123456789ABCDEF01234 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -82,22 +65,16 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		48DFC8B62E45109B002EB4C0 /* app_booking */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = app_booking;
 			sourceTree = "<group>";
 		};
 		48DFC8C52E45109C002EB4C0 /* app_bookingTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = app_bookingTests;
 			sourceTree = "<group>";
 		};
 		48DFC8CF2E45109C002EB4C0 /* app_bookingUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = app_bookingUITests;
 			sourceTree = "<group>";
 		};
@@ -131,7 +108,7 @@
 		48DFC8B52E45109B002EB4C0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				48DFC8B42E45109B002EB4C0 /* Zettelman.app */,
+				48DFC8B42E45109B002EB4C0 /* ZettelScan.app */,
 				48DFC8C22E45109C002EB4C0 /* app_bookingTests.xctest */,
 				48DFC8CC2E45109C002EB4C0 /* app_bookingUITests.xctest */,
 			);
@@ -154,17 +131,16 @@
 				A1DD4999B3339F752D6A031B /* ImagePickers.swift */,
 				8888A31001F4F1DCBD8A2E9D /* Models.swift */,
 				E97E5D1C3A39C75A05F0575A /* S3ZettelImageView.swift */,
-					DED10117073804AF89C6750B /* ZettelAnalysisService.swift */,
-					AAAA11112222333344445555 /* LinearDesign.swift */,
-					AB12CD34EF56AB78CD90EF12 /* UploadSubscriptions.swift */,
-					AB12CD34EF56AB78CD90EF22 /* UploadPlansView.swift */,
-					5D1FFD97A76332CA9BC74CFB /* ZettelS3Service.swift */,
-					2002D2C2C4DB5B4C9ACDFB89 /* ZettelmanApp.swift */,
+				DED10117073804AF89C6750B /* ZettelAnalysisService.swift */,
+				AAAA11112222333344445555 /* LinearDesign.swift */,
+				AB12CD34EF56AB78CD90EF12 /* UploadSubscriptions.swift */,
+				AB12CD34EF56AB78CD90EF22 /* UploadPlansView.swift */,
+				5D1FFD97A76332CA9BC74CFB /* ZettelS3Service.swift */,
+				2002D2C2C4DB5B4C9ACDFB89 /* ZettelmanApp.swift */,
 				414DFB15DBBD1B1BBFCD4EE2 /* Assets.xcassets */,
 				E071023152E10ABC0A914D26 /* amplifyconfiguration.json */,
 				FABC123456789ABCDEF01234 /* Localizable.xcstrings */,
 			);
-			name = Zettelman;
 			path = Zettelman;
 			sourceTree = "<group>";
 		};
@@ -193,7 +169,7 @@
 				4BB5BCB32E5C47E200F3C073 /* Amplify */,
 			);
 			productName = app_booking;
-			productReference = 48DFC8B42E45109B002EB4C0 /* Zettelman.app */;
+			productReference = 48DFC8B42E45109B002EB4C0 /* ZettelScan.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -208,14 +184,6 @@
 				TargetAttributes = {
 					48DFC8B32E45109B002EB4C0 = {
 						CreatedOnToolsVersion = 16.4;
-					};
-					48DFC8C12E45109C002EB4C0 = {
-						CreatedOnToolsVersion = 16.4;
-						TestTargetID = 48DFC8B32E45109B002EB4C0;
-					};
-					48DFC8CB2E45109C002EB4C0 = {
-						CreatedOnToolsVersion = 16.4;
-						TestTargetID = 48DFC8B32E45109B002EB4C0;
 					};
 				};
 			};
@@ -271,11 +239,11 @@
 				972C95D6E3236E472CEE657A /* CognitoAuthManager.swift in Sources */,
 				E8D01C25B44CF883497E8B18 /* CognitoAuthView.swift in Sources */,
 				BBC346E086063E40E5CAA7D0 /* ContentView.swift in Sources */,
-					32801F4629C69B6EDFC90CFE /* ImagePickers.swift in Sources */,
-					AAAA11112222333344445556 /* LinearDesign.swift in Sources */,
-					AB12CD34EF56AB78CD90EF13 /* UploadSubscriptions.swift in Sources */,
-					AB12CD34EF56AB78CD90EF23 /* UploadPlansView.swift in Sources */,
-					89239CE3D7A2A88EED566616 /* Models.swift in Sources */,
+				32801F4629C69B6EDFC90CFE /* ImagePickers.swift in Sources */,
+				AAAA11112222333344445556 /* LinearDesign.swift in Sources */,
+				AB12CD34EF56AB78CD90EF13 /* UploadSubscriptions.swift in Sources */,
+				AB12CD34EF56AB78CD90EF23 /* UploadPlansView.swift in Sources */,
+				89239CE3D7A2A88EED566616 /* Models.swift in Sources */,
 				3CB83174BE19AC2679683882 /* S3ZettelImageView.swift in Sources */,
 				78F8D548B252A812FE8CEC40 /* ZettelAnalysisService.swift in Sources */,
 				F94926469DDE9D7A01EED9A7 /* ZettelS3Service.swift in Sources */,
@@ -421,13 +389,13 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Zettelman;
-				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
-				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Zettelman uses the camera to capture appointment notes before sending them to Lambda for analysis.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Zettelman can save processed note images if you export or share them later.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Zettelman uses your photo library so you can upload an appointment note for analysis.";
+				INFOPLIST_KEY_CFBundleDisplayName = ZettelScan;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "ZettelScan can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "ZettelScan can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "ZettelScan can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "ZettelScan uses the camera to capture appointment notes before sending them to Lambda for analysis.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "ZettelScan can save processed note images if you export or share them later.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "ZettelScan uses your photo library so you can upload an appointment note for analysis.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -445,8 +413,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yashu.zettelman;
-				PRODUCT_NAME = Zettelman;
+				PRODUCT_BUNDLE_IDENTIFIER = org.pkidpkid.zettelscan;
+				PRODUCT_NAME = ZettelScan;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -470,13 +438,13 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Zettelman;
-				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
-				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Zettelman can add confirmed appointments to your calendar.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Zettelman uses the camera to capture appointment notes before sending them to Lambda for analysis.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Zettelman can save processed note images if you export or share them later.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Zettelman uses your photo library so you can upload an appointment note for analysis.";
+				INFOPLIST_KEY_CFBundleDisplayName = ZettelScan;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "ZettelScan can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "ZettelScan can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "ZettelScan can add confirmed appointments to your calendar.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "ZettelScan uses the camera to capture appointment notes before sending them to Lambda for analysis.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "ZettelScan can save processed note images if you export or share them later.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "ZettelScan uses your photo library so you can upload an appointment note for analysis.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -494,8 +462,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yashu.zettelman;
-				PRODUCT_NAME = Zettelman;
+				PRODUCT_BUNDLE_IDENTIFIER = org.pkidpkid.zettelscan;
+				PRODUCT_NAME = ZettelScan;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -503,84 +471,6 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		48DFC8DA2E45109C002EB4C0 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "appbooking.app-bookingTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/app_booking.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/app_booking";
-			};
-			name = Debug;
-		};
-		48DFC8DB2E45109C002EB4C0 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "appbooking.app-bookingTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/app_booking.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/app_booking";
-			};
-			name = Release;
-		};
-		48DFC8DD2E45109C002EB4C0 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "appbooking.app-bookingUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = app_booking;
-			};
-			name = Debug;
-		};
-		48DFC8DE2E45109C002EB4C0 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "appbooking.app-bookingUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = app_booking;
 			};
 			name = Release;
 		};

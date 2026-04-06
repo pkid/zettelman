@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "48DFC8B32E45109B002EB4C0"
-               BuildableName = "Zettelman.app"
+               BuildableName = "ZettelScan.app"
                BlueprintName = "app_booking"
                ReferencedContainer = "container:Zettelman.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "48DFC8B32E45109B002EB4C0"
-            BuildableName = "Zettelman.app"
+            BuildableName = "ZettelScan.app"
             BlueprintName = "app_booking"
             ReferencedContainer = "container:Zettelman.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "48DFC8B32E45109B002EB4C0"
-            BuildableName = "Zettelman.app"
+            BuildableName = "ZettelScan.app"
             BlueprintName = "app_booking"
             ReferencedContainer = "container:Zettelman.xcodeproj">
          </BuildableReference>
