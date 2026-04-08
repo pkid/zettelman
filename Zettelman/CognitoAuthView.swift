@@ -15,6 +15,7 @@ struct CognitoAuthView: View {
     enum AuthMode {
         case signIn
         case signUp
+        case confirmSignUp
         case resetPassword
         case confirmResetPassword
     }
@@ -76,13 +77,15 @@ struct CognitoAuthView: View {
             .textContentType(nil)
             .disabled(isLoading)
 
-            LinearTextField(
-                placeholder: mode == .confirmResetPassword ? "auth.new.password" : "auth.password",
-                text: $password,
-                isSecure: true
-            )
-            .textContentType(nil)
-            .disabled(isLoading)
+            if mode == .signIn || mode == .signUp || mode == .confirmResetPassword {
+                LinearTextField(
+                    placeholder: mode == .confirmResetPassword ? "auth.new.password" : "auth.password",
+                    text: $password,
+                    isSecure: true
+                )
+                .textContentType(nil)
+                .disabled(isLoading)
+            }
 
             if mode == .signUp || mode == .confirmResetPassword {
                 LinearTextField(
@@ -94,7 +97,7 @@ struct CognitoAuthView: View {
                 .disabled(isLoading)
             }
 
-            if mode == .confirmResetPassword {
+            if mode == .confirmSignUp || mode == .confirmResetPassword {
                 LinearTextField(
                     placeholder: "auth.reset.code",
                     text: $confirmationCode
@@ -141,6 +144,17 @@ struct CognitoAuthView: View {
                 Button("auth.already.have.account") { mode = .signIn }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
+            case .confirmSignUp:
+                Button("auth.resend.code") {
+                    resendSignUpCode()
+                }
+                .font(LinearDesign.Typography.small)
+                .foregroundStyle(LinearDesign.Colors.accentViolet)
+                .disabled(isLoading)
+
+                Button("auth.back.to.signin") { mode = .signIn }
+                    .font(LinearDesign.Typography.small)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .resetPassword:
                 Button("auth.back.to.signin") { mode = .signIn }
                     .font(LinearDesign.Typography.small)
@@ -160,6 +174,8 @@ struct CognitoAuthView: View {
             return String(localized: "auth.signin.subtitle")
         case .signUp:
             return String(localized: "auth.signup.subtitle")
+        case .confirmSignUp:
+            return String(localized: "auth.confirm.signup.subtitle")
         case .resetPassword:
             return String(localized: "auth.reset.subtitle")
         case .confirmResetPassword:
@@ -173,6 +189,8 @@ struct CognitoAuthView: View {
             return String(localized: "auth.signin.button")
         case .signUp:
             return String(localized: "auth.signup.button")
+        case .confirmSignUp:
+            return String(localized: "auth.confirm.signup.button")
         case .resetPassword:
             return String(localized: "auth.reset.button")
         case .confirmResetPassword:
@@ -188,6 +206,8 @@ struct CognitoAuthView: View {
             return !password.isEmpty
         case .signUp:
             return !password.isEmpty && password == confirmPassword && password.count >= 8
+        case .confirmSignUp:
+            return !confirmationCode.isEmpty
         case .resetPassword:
             return true
         case .confirmResetPassword:
@@ -202,23 +222,46 @@ struct CognitoAuthView: View {
 
         Task {
             let result: Result<Void, Error>
+            let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+            let submittedMode = mode
 
-            switch mode {
+            switch submittedMode {
             case .signIn:
-                result = await authManager.signIn(email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password)
+                result = await authManager.signIn(email: normalizedEmail, password: password)
             case .signUp:
-                result = await authManager.signUp(
-                    email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                let signUpResult = await authManager.signUp(
+                    email: normalizedEmail,
                     password: password
                 )
+                switch signUpResult {
+                case .success(let outcome):
+                    result = .success(())
+                    switch outcome {
+                    case .completed:
+                        alertMessage = String(localized: "auth.signup.success")
+                        showingAlert = true
+                        mode = .signIn
+                    case .needsConfirmation:
+                        alertMessage = String(localized: "auth.signup.code.sent")
+                        showingAlert = true
+                        mode = .confirmSignUp
+                    }
+                case .failure(let error):
+                    result = .failure(error)
+                }
+            case .confirmSignUp:
+                result = await authManager.confirmSignUp(
+                    email: normalizedEmail,
+                    confirmationCode: confirmationCode.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
             case .resetPassword:
-                result = await authManager.resetPassword(email: email.trimmingCharacters(in: .whitespacesAndNewlines))
+                result = await authManager.resetPassword(email: normalizedEmail)
                 if case .success = result {
                     mode = .confirmResetPassword
                 }
             case .confirmResetPassword:
                 result = await authManager.confirmResetPassword(
-                    email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                    email: normalizedEmail,
                     newPassword: password,
                     confirmationCode: confirmationCode.trimmingCharacters(in: .whitespacesAndNewlines)
                 )
@@ -229,14 +272,39 @@ struct CognitoAuthView: View {
             if case let .failure(error) = result {
                 alertMessage = authManager.errorMessage ?? error.localizedDescription
                 showingAlert = true
-            } else if mode == .signUp {
-                alertMessage = String(localized: "auth.signup.success")
+                if submittedMode == .signIn,
+                   authManager.pendingSignUpEmail?.lowercased() == normalizedEmail.lowercased() {
+                    mode = .confirmSignUp
+                }
+            } else if submittedMode == .confirmSignUp {
+                alertMessage = String(localized: "auth.confirm.signup.success")
                 showingAlert = true
                 mode = .signIn
-            } else if mode == .confirmResetPassword {
+            } else if submittedMode == .confirmResetPassword {
                 alertMessage = String(localized: "auth.confirm.reset.success")
                 showingAlert = true
                 mode = .signIn
+            }
+        }
+    }
+
+    private func resendSignUpCode() {
+        guard !isLoading else { return }
+
+        isLoading = true
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        Task {
+            let result = await authManager.resendSignUpCode(email: normalizedEmail)
+            isLoading = false
+
+            switch result {
+            case .success:
+                alertMessage = String(localized: "auth.signup.code.resent")
+                showingAlert = true
+            case .failure(let error):
+                alertMessage = authManager.errorMessage ?? error.localizedDescription
+                showingAlert = true
             }
         }
     }

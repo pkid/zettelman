@@ -18,6 +18,19 @@ Use the same Amplify package setup as the reference app, but point it at your ow
   - `YOUR-APP-CLIENT-ID`
   - `YOUR-S3-BUCKET`
 
+### Cognito user-pool settings for automatic email confirmation
+
+To avoid manual admin confirmation, configure your Cognito User Pool like this:
+
+1. **Self registration**: enabled (`Allow users to sign themselves up`)
+2. **Sign-in option**: email (or username + email alias)
+3. **Required user attribute**: `email`
+4. **Auto-verify**: `email`
+5. **Verification message**: one-time code (not link)
+6. **App client**: no client secret for mobile apps
+
+With these settings, signup triggers Cognito to send a code to the user's email and the app confirms the user with `confirmSignUp`.
+
 The app stores files under:
 
 - Original uploads: `received/{email}/zettels/{timestamp}-{id}.jpg`

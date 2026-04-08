@@ -8,15 +8,23 @@ final class CognitoAuthManager: ObservableObject {
         case signedOut
         case signingIn
         case signingUp
+        case confirmingSignUp
+        case resendingSignUpCode
         case resettingPassword
         case confirmingResetPassword
         case signedIn
+    }
+
+    enum SignUpOutcome {
+        case completed
+        case needsConfirmation
     }
 
     @Published var isSignedIn = false
     @Published var userEmail: String?
     @Published var authState: AuthState = .loading
     @Published var errorMessage: String?
+    @Published var pendingSignUpEmail: String?
 
     init() {
         Task {
@@ -61,18 +69,21 @@ final class CognitoAuthManager: ObservableObject {
             return .success(())
         } catch {
             authState = .signedOut
+            if isUserNotConfirmedError(error) {
+                pendingSignUpEmail = email
+            }
             let friendlyError = normalizedAuthError(from: error)
             errorMessage = friendlyError.localizedDescription
             return .failure(friendlyError)
         }
     }
 
-    func signUp(email: String, password: String) async -> Result<Void, Error> {
+    func signUp(email: String, password: String) async -> Result<SignUpOutcome, Error> {
         authState = .signingUp
         errorMessage = nil
 
         do {
-            _ = try await Amplify.Auth.signUp(
+            let result = try await Amplify.Auth.signUp(
                 username: email,
                 password: password,
                 options: .init(
@@ -82,6 +93,55 @@ final class CognitoAuthManager: ObservableObject {
                 )
             )
 
+            authState = .signedOut
+            if result.isSignUpComplete {
+                pendingSignUpEmail = nil
+                return .success(.completed)
+            } else {
+                pendingSignUpEmail = email
+                return .success(.needsConfirmation)
+            }
+        } catch {
+            authState = .signedOut
+            let friendlyError = normalizedAuthError(from: error)
+            errorMessage = friendlyError.localizedDescription
+            return .failure(friendlyError)
+        }
+    }
+
+    func confirmSignUp(email: String, confirmationCode: String) async -> Result<Void, Error> {
+        authState = .confirmingSignUp
+        errorMessage = nil
+
+        do {
+            let result = try await Amplify.Auth.confirmSignUp(
+                for: email,
+                confirmationCode: confirmationCode
+            )
+
+            guard result.isSignUpComplete else {
+                authState = .signedOut
+                return .failure(AuthError.unknown(String(localized: "auth.error.additional.steps")))
+            }
+
+            pendingSignUpEmail = nil
+            authState = .signedOut
+            return .success(())
+        } catch {
+            authState = .signedOut
+            let friendlyError = normalizedAuthError(from: error)
+            errorMessage = friendlyError.localizedDescription
+            return .failure(friendlyError)
+        }
+    }
+
+    func resendSignUpCode(email: String) async -> Result<Void, Error> {
+        authState = .resendingSignUpCode
+        errorMessage = nil
+
+        do {
+            _ = try await Amplify.Auth.resendSignUpCode(for: email)
+            pendingSignUpEmail = email
             authState = .signedOut
             return .success(())
         } catch {
@@ -136,7 +196,14 @@ final class CognitoAuthManager: ObservableObject {
     private func resetSessionState() {
         isSignedIn = false
         userEmail = nil
+        pendingSignUpEmail = nil
         authState = .signedOut
+    }
+
+    private func isUserNotConfirmedError(_ error: Error) -> Bool {
+        let message = "\(error)"
+        return message.localizedCaseInsensitiveContains("UserNotConfirmedException")
+            || message.localizedCaseInsensitiveContains("not confirmed")
     }
 
     private func normalizedAuthError(from error: Error) -> Error {
@@ -181,6 +248,21 @@ final class CognitoAuthManager: ObservableObject {
     private func bestMessage(description: String, fallback: String) -> String {
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedDescription.isEmpty, trimmedDescription != "unknown" {
+            if trimmedDescription.localizedCaseInsensitiveContains("UserNotConfirmedException")
+                || trimmedDescription.localizedCaseInsensitiveContains("not confirmed") {
+                return String(localized: "auth.error.account.not.confirmed")
+            }
+
+            if trimmedDescription.localizedCaseInsensitiveContains("CodeMismatchException")
+                || trimmedDescription.localizedCaseInsensitiveContains("Invalid verification code") {
+                return String(localized: "auth.error.invalid.code")
+            }
+
+            if trimmedDescription.localizedCaseInsensitiveContains("ExpiredCodeException")
+                || trimmedDescription.localizedCaseInsensitiveContains("expired code") {
+                return String(localized: "auth.error.code.expired")
+            }
+
             if trimmedDescription.localizedCaseInsensitiveContains("UsernameExistsException")
                 || trimmedDescription.localizedCaseInsensitiveContains("already exists") {
                 return String(localized: "auth.error.account.exists")
