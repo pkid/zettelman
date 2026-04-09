@@ -4,7 +4,7 @@ import StoreKit
 enum UploadPlan: Int, CaseIterable, Identifiable {
     case free = 0
     case starter10 = 1
-    case pro100 = 2
+    case pro50 = 2
 
     var id: Int { rawValue }
 
@@ -14,7 +14,7 @@ enum UploadPlan: Int, CaseIterable, Identifiable {
             return "Free"
         case .starter10:
             return "Starter"
-        case .pro100:
+        case .pro50:
             return "Pro"
         }
     }
@@ -25,7 +25,7 @@ enum UploadPlan: Int, CaseIterable, Identifiable {
             return 3
         case .starter10:
             return 10
-        case .pro100:
+        case .pro50:
             return 50
         }
     }
@@ -36,7 +36,7 @@ enum UploadPlan: Int, CaseIterable, Identifiable {
             return "€0.00"
         case .starter10:
             return "€0.99"
-        case .pro100:
+        case .pro50:
             return "€3.99"
         }
     }
@@ -51,8 +51,8 @@ enum UploadPlan: Int, CaseIterable, Identifiable {
             return nil
         case .starter10:
             return "com.zettelman.uploads.starter10.monthly"
-        case .pro100:
-            return "com.zettelman.uploads.pro50.monthly"
+        case .pro50:
+            return "org.pkidpkid.zettelscan.uploads.pro50.monthly.v2"
         }
     }
 
