@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct CognitoAuthView: View {
     @EnvironmentObject private var authManager: CognitoAuthManager
@@ -6,6 +7,7 @@ struct CognitoAuthView: View {
     @State private var mode: AuthMode = .signIn
     @State private var email = ""
     @State private var password = ""
+    @State private var lastTypedPassword = ""
     @State private var confirmPassword = ""
     @State private var confirmationCode = ""
     @State private var isLoading = false
@@ -35,7 +37,9 @@ struct CognitoAuthView: View {
             }
         }
         .alert("auth.alert.title", isPresented: $showingAlert) {
-            Button("common.ok", role: .cancel) { }
+            Button("common.ok", role: .cancel) {
+                restorePasswordIfUnexpectedlyCleared()
+            }
         } message: {
             Text(alertMessage)
         }
@@ -78,22 +82,25 @@ struct CognitoAuthView: View {
             .disabled(isLoading)
 
             if mode == .signIn || mode == .signUp || mode == .confirmResetPassword {
-                LinearTextField(
-                    placeholder: mode == .confirmResetPassword ? "auth.new.password" : "auth.password",
-                    text: $password,
-                    isSecure: true
+                LinearPasswordField(
+                    placeholder: mode == .confirmResetPassword
+                        ? String(localized: "auth.new.password")
+                        : String(localized: "auth.password"),
+                    text: $password
                 )
-                .textContentType(nil)
+                .onChange(of: password) { newValue in
+                    if !newValue.isEmpty {
+                        lastTypedPassword = newValue
+                    }
+                }
                 .disabled(isLoading)
             }
 
             if mode == .signUp || mode == .confirmResetPassword {
-                LinearTextField(
-                    placeholder: "auth.confirm.password",
-                    text: $confirmPassword,
-                    isSecure: true
+                LinearPasswordField(
+                    placeholder: String(localized: "auth.confirm.password"),
+                    text: $confirmPassword
                 )
-                .textContentType(nil)
                 .disabled(isLoading)
             }
 
@@ -272,6 +279,7 @@ struct CognitoAuthView: View {
             if case let .failure(error) = result {
                 alertMessage = authManager.errorMessage ?? error.localizedDescription
                 showingAlert = true
+                restorePasswordIfUnexpectedlyCleared()
                 if submittedMode == .signIn,
                    authManager.pendingSignUpEmail?.lowercased() == normalizedEmail.lowercased() {
                     mode = .confirmSignUp
@@ -308,25 +316,128 @@ struct CognitoAuthView: View {
             }
         }
     }
+
+    private func restorePasswordIfUnexpectedlyCleared() {
+        guard mode == .signIn,
+              password.isEmpty,
+              !lastTypedPassword.isEmpty else { return }
+        password = lastTypedPassword
+    }
 }
 
 struct LinearTextField: View {
     let placeholder: LocalizedStringKey
     @Binding var text: String
-    var isSecure: Bool = false
 
     var body: some View {
-        Group {
-            if isSecure {
-                SecureField(placeholder, text: $text)
-            } else {
-                TextField(placeholder, text: $text)
+        TextField(placeholder, text: $text)
+            .linearInputField()
+    }
+}
+
+struct LinearPasswordField: View {
+    let placeholder: String
+    @Binding var text: String
+    @State private var isTextVisible = false
+
+    var body: some View {
+        HStack(spacing: LinearDesign.Spacing.small) {
+            SecureToggleTextField(
+                placeholder: placeholder,
+                text: $text,
+                isSecure: !isTextVisible
+            )
+            .frame(maxWidth: .infinity)
+
+            Button {
+                isTextVisible.toggle()
+            } label: {
+                Image(systemName: isTextVisible ? "eye.slash" : "eye")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(LinearDesign.Colors.secondaryText)
+                    .frame(width: 20, height: 20)
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isTextVisible ? "Hide password" : "Show password")
         }
         .linearInputField()
     }
 }
 
+struct SecureToggleTextField: UIViewRepresentable {
+    let placeholder: String
+    @Binding var text: String
+    let isSecure: Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField(frame: .zero)
+        textField.borderStyle = .none
+        textField.backgroundColor = .clear
+        textField.textColor = UIColor(LinearDesign.Colors.primaryText)
+        textField.tintColor = UIColor(LinearDesign.Colors.accentViolet)
+        textField.isSecureTextEntry = isSecure
+        textField.autocapitalizationType = .none
+        textField.autocorrectionType = .no
+        textField.spellCheckingType = .no
+        textField.smartQuotesType = .no
+        textField.smartDashesType = .no
+        textField.smartInsertDeleteType = .no
+        textField.textContentType = .oneTimeCode
+        textField.delegate = context.coordinator
+        textField.addTarget(context.coordinator, action: #selector(Coordinator.textDidChange(_:)), for: .editingChanged)
+        return textField
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        context.coordinator.parent = self
+
+        uiView.placeholder = placeholder
+        uiView.isEnabled = context.environment.isEnabled
+
+        if uiView.text != text {
+            uiView.text = text
+        }
+
+        if uiView.isSecureTextEntry != isSecure {
+            let currentText = uiView.text
+            let selectedRange = uiView.selectedTextRange
+            let wasFirstResponder = uiView.isFirstResponder
+
+            uiView.isSecureTextEntry = isSecure
+
+            if uiView.text != currentText {
+                uiView.text = currentText
+            }
+
+            if wasFirstResponder {
+                uiView.becomeFirstResponder()
+            }
+
+            if let selectedRange {
+                uiView.selectedTextRange = selectedRange
+            } else {
+                let end = uiView.endOfDocument
+                uiView.selectedTextRange = uiView.textRange(from: end, to: end)
+            }
+        }
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: SecureToggleTextField
+
+        init(_ parent: SecureToggleTextField) {
+            self.parent = parent
+        }
+
+        @objc func textDidChange(_ sender: UITextField) {
+            parent.text = sender.text ?? ""
+        }
+    }
+}
 extension View {
     func linearGhostButton() -> some View {
         self
