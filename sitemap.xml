@@ -4,16 +4,18 @@
     <loc>https://pkid.github.io/zettelman/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/zettelman/en/" />
     <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/de/" />
   </url>
   <url>
     <loc>https://pkid.github.io/zettelman/en/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/zettelman/en/" />
     <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/de/" />
   </url>
   <url>
     <loc>https://pkid.github.io/zettelman/de/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/zettelman/en/" />
     <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/zettelman/de/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pkid.github.io/zettelman/de/" />
   </url>
 </urlset>
