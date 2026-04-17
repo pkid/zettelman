@@ -200,6 +200,10 @@ final class AppointmentStore: ObservableObject {
         isUploadQuotaBypassed || uploadsRemainingThisMonth > 0
     }
 
+    var upcomingAppointments: [Appointment] {
+        appointments.filter { $0.scheduledAt >= Date() }
+    }
+
     func planPriceLabel(for plan: UploadPlan) -> String {
         subscriptionManager.displayPrice(for: plan)
     }

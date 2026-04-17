@@ -23,9 +23,9 @@ struct AppointmentListView: View {
                                 .foregroundStyle(LinearDesign.Colors.Semantic.destructive)
                         }
 
-                        if store.isLoading && store.appointments.isEmpty {
+                        if store.isLoading && store.upcomingAppointments.isEmpty {
                             loadingState
-                        } else if store.appointments.isEmpty {
+                        } else if store.upcomingAppointments.isEmpty {
                             emptyState
                         } else {
                             appointmentCards
@@ -130,7 +130,7 @@ struct AppointmentListView: View {
 
     private var appointmentCards: some View {
         LazyVStack(spacing: LinearDesign.Spacing.small) {
-            ForEach(store.appointments) { appointment in
+            ForEach(store.upcomingAppointments) { appointment in
                 NavigationLink {
                     AppointmentDetailView(appointment: appointment, onDelete: {
                         try await store.deleteAppointment(appointment)

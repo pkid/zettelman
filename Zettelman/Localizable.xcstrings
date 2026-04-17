@@ -828,54 +828,6 @@
         }
       }
     },
-    "auth.confirm.signup.button" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konto bestätigen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirm account"
-          }
-        }
-      }
-    },
-    "auth.confirm.signup.subtitle" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gib den Code aus deiner E-Mail ein, um dein Konto zu bestätigen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter the code from your email to confirm your account."
-          }
-        }
-      }
-    },
-    "auth.confirm.signup.success" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dein Konto wurde bestätigt. Du kannst dich jetzt anmelden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your account is confirmed. You can sign in now."
-          }
-        }
-      }
-    },
     "auth.confirm.reset.button" : {
       "localizations" : {
         "de" : {
@@ -920,6 +872,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your password has been reset successfully."
+          }
+        }
+      }
+    },
+    "auth.confirm.signup.button" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto bestätigen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm account"
+          }
+        }
+      }
+    },
+    "auth.confirm.signup.subtitle" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib den Code aus deiner E-Mail ein, um dein Konto zu bestätigen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the code from your email to confirm your account."
+          }
+        }
+      }
+    },
+    "auth.confirm.signup.success" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Konto wurde bestätigt. Du kannst dich jetzt anmelden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account is confirmed. You can sign in now."
           }
         }
       }
@@ -1004,6 +1004,22 @@
         }
       }
     },
+    "auth.error.code.expired" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Code ist abgelaufen. Bitte fordere einen neuen Code an."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That code has expired. Please request a new code."
+          }
+        }
+      }
+    },
     "auth.error.failed.checkinput" : {
       "localizations" : {
         "de" : {
@@ -1032,22 +1048,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Authentication failed. Please try again."
-          }
-        }
-      }
-    },
-    "auth.error.code.expired" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Code ist abgelaufen. Bitte fordere einen neuen Code an."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "That code has expired. Please request a new code."
           }
         }
       }
@@ -1116,6 +1116,22 @@
         }
       }
     },
+    "auth.resend.code" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code erneut senden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resend code"
+          }
+        }
+      }
+    },
     "auth.reset.button" : {
       "localizations" : {
         "de" : {
@@ -1160,22 +1176,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "We'll send you a code to reset your password."
-          }
-        }
-      }
-    },
-    "auth.resend.code" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Code erneut senden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resend code"
           }
         }
       }
@@ -1228,6 +1228,38 @@
         }
       }
     },
+    "auth.signup.code.resent" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein neuer Bestätigungscode wurde an deine E-Mail gesendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new confirmation code has been sent to your email."
+          }
+        }
+      }
+    },
+    "auth.signup.code.sent" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto erstellt. Wir haben einen Bestätigungscode an deine E-Mail gesendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account created. We sent a confirmation code to your email."
+          }
+        }
+      }
+    },
     "auth.signup.subtitle" : {
       "localizations" : {
         "de" : {
@@ -1256,38 +1288,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Account created. Please sign in now."
-          }
-        }
-      }
-    },
-    "auth.signup.code.sent" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konto erstellt. Wir haben einen Bestätigungscode an deine E-Mail gesendet."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Account created. We sent a confirmation code to your email."
-          }
-        }
-      }
-    },
-    "auth.signup.code.resent" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ein neuer Bestätigungscode wurde an deine E-Mail gesendet."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A new confirmation code has been sent to your email."
           }
         }
       }
@@ -1512,6 +1512,9 @@
     "Free" : {
 
     },
+    "Hide password" : {
+
+    },
     "Included by default." : {
 
     },
@@ -1657,6 +1660,9 @@
           }
         }
       }
+    },
+    "Show password" : {
+
     },
     "storage.error.access.denied" : {
       "localizations" : {
