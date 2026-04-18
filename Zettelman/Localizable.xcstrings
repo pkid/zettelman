@@ -1603,22 +1603,6 @@
         }
       }
     },
-    "common.or" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "oder"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "or"
-          }
-        }
-      }
-    },
     "common.open.settings" : {
       "localizations" : {
         "de" : {
@@ -1631,6 +1615,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open settings"
+          }
+        }
+      }
+    },
+    "common.or" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "oder"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or"
           }
         }
       }
@@ -1780,6 +1780,16 @@
     },
     "OK" : {
 
+    },
+    "Privacy Policy" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutzerklärung"
+          }
+        }
+      }
     },
     "Processing..." : {
 
@@ -2231,6 +2241,26 @@
     },
     "Subscription" : {
 
+    },
+    "Subscriptions auto-renew monthly until canceled. Manage or cancel anytime in your Apple ID settings at least 24 hours before the end of the current period." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abonnements verlängern sich monatlich automatisch, bis sie gekündigt werden. Verwaltung oder Kündigung jederzeit in den Einstellungen Ihrer Apple-ID, spätestens 24 Stunden vor Ende der laufenden Periode."
+          }
+        }
+      }
+    },
+    "Terms of Use (EULA)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutzungsbedingungen (EULA)"
+          }
+        }
+      }
     },
     "Upgrade" : {
 
