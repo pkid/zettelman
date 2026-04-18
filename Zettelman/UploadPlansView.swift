@@ -43,6 +43,8 @@ struct UploadPlansView: View {
                             .stroke(LinearDesign.Colors.borderStandard, lineWidth: 1)
                     )
                     .disabled(isRestoringPurchases || activePlanPurchase != nil)
+
+                    legalFooter
                 }
                 .padding(LinearDesign.Spacing.medium)
             }
@@ -66,6 +68,26 @@ struct UploadPlansView: View {
                 Text(errorMessage ?? "")
             }
         }
+    }
+
+    private var legalFooter: some View {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.xSmall) {
+            Text("Subscriptions auto-renew monthly until canceled. Manage or cancel anytime in your Apple ID settings at least 24 hours before the end of the current period.")
+                .font(LinearDesign.Typography.caption)
+                .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: LinearDesign.Spacing.medium) {
+                Link("Terms of Use (EULA)",
+                     destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                Link("Privacy Policy",
+                     destination: URL(string: "https://pkid.github.io/githubpages/privacy.html")!)
+            }
+            .font(LinearDesign.Typography.captionMedium)
+            .foregroundStyle(LinearDesign.Colors.accentViolet)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, LinearDesign.Spacing.small)
     }
 
     private func planCard(for plan: UploadPlan) -> some View {
