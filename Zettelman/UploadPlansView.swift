@@ -97,6 +97,11 @@ struct UploadPlansView: View {
                     Text(plan.title)
                         .font(LinearDesign.Typography.bodySemibold)
                         .foregroundStyle(LinearDesign.Colors.primaryText)
+                    if plan != .free {
+                        Text("Auto-renewing monthly subscription")
+                            .font(LinearDesign.Typography.caption)
+                            .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                    }
                     Text(plan.summary)
                         .font(LinearDesign.Typography.small)
                         .foregroundStyle(LinearDesign.Colors.secondaryText)

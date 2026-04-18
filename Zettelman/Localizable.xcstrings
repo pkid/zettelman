@@ -1533,6 +1533,16 @@
         }
       }
     },
+    "Auto-renewing monthly subscription" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monatliches Abo, automatische Verlängerung"
+          }
+        }
+      }
+    },
     "Choose a monthly upload plan." : {
 
     },
