@@ -15,7 +15,7 @@ struct Appointment: Identifiable, Codable, Hashable {
     var what: String
     var location: String
     var withWhom: String?
-    let uploadedZettel: UploadedZettel
+    let uploadedZettel: UploadedZettel?
     let createdAt: Date
 
     init(
@@ -27,7 +27,7 @@ struct Appointment: Identifiable, Codable, Hashable {
         what: String,
         location: String,
         withWhom: String? = nil,
-        uploadedZettel: UploadedZettel,
+        uploadedZettel: UploadedZettel? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -65,7 +65,7 @@ struct Appointment: Identifiable, Codable, Hashable {
         what = try container.decode(String.self, forKey: .what)
         location = try container.decode(String.self, forKey: .location)
         withWhom = try container.decodeIfPresent(String.self, forKey: .withWhom)
-        uploadedZettel = try container.decode(UploadedZettel.self, forKey: .uploadedZettel)
+        uploadedZettel = try container.decodeIfPresent(UploadedZettel.self, forKey: .uploadedZettel)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
     }
 
@@ -79,7 +79,7 @@ struct Appointment: Identifiable, Codable, Hashable {
         try container.encode(what, forKey: .what)
         try container.encode(location, forKey: .location)
         try container.encodeIfPresent(withWhom, forKey: .withWhom)
-        try container.encode(uploadedZettel, forKey: .uploadedZettel)
+        try container.encodeIfPresent(uploadedZettel, forKey: .uploadedZettel)
         try container.encode(createdAt, forKey: .createdAt)
     }
 }
@@ -92,7 +92,7 @@ struct AppointmentDraft: Identifiable, Hashable {
     var what: String
     var location: String
     var withWhom: String
-    let uploadedZettel: UploadedZettel
+    let uploadedZettel: UploadedZettel?
     let previewImageData: Data?
     let rawDateTime: String?
 
@@ -104,7 +104,7 @@ struct AppointmentDraft: Identifiable, Hashable {
         what: String,
         location: String,
         withWhom: String,
-        uploadedZettel: UploadedZettel,
+        uploadedZettel: UploadedZettel? = nil,
         previewImageData: Data?,
         rawDateTime: String?
     ) {

@@ -2,14 +2,27 @@ import SwiftUI
 import UIKit
 
 struct AddAppointmentView: View {
+    private enum CaptureMode: String, CaseIterable, Identifiable {
+        case scan
+        case manual
+
+        var id: String { rawValue }
+    }
+
     @ObservedObject var store: AppointmentStore
 
     @Environment(\.dismiss) private var dismiss
 
+    @State private var captureMode: CaptureMode = .scan
     @State private var selectedImage: UIImage?
+    @State private var manualScheduledAt = Date()
+    @State private var manualWhat = ""
+    @State private var manualLocation = ""
+    @State private var manualWithWhom = ""
     @State private var pendingDraft: AppointmentDraft?
     @State private var showingCamera = false
     @State private var showingPhotoPicker = false
+    @State private var showingCaptureSourceDialog = false
     @State private var isAnalyzing = false
     @State private var alertMessage = ""
     @State private var showingAlert = false
@@ -23,9 +36,11 @@ struct AddAppointmentView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
+                        captureModeSelector
                         heroCard
-                        uploadQuotaCard
-                        captureControls
+                        if captureMode == .scan {
+                            uploadQuotaCard
+                        }
                     }
                     .padding(LinearDesign.Spacing.medium)
                 }
@@ -47,6 +62,21 @@ struct AddAppointmentView: View {
                     .disabled(isAnalyzing)
                 }
             }
+        }
+        .confirmationDialog("appointment.capture.source.title", isPresented: $showingCaptureSourceDialog, titleVisibility: .visible) {
+            if isCameraAvailable {
+                Button("appointment.capture.take.picture") {
+                    showingCamera = true
+                }
+            }
+
+            Button("appointment.capture.choose.photos") {
+                showingPhotoPicker = true
+            }
+
+            Button("common.cancel", role: .cancel) { }
+        } message: {
+            Text("appointment.capture.source.message")
         }
         .sheet(isPresented: $showingCamera) {
             CameraImagePicker(
@@ -82,6 +112,18 @@ struct AddAppointmentView: View {
         }
     }
 
+    private var captureModeSelector: some View {
+        Picker("appointment.capture.mode.label", selection: $captureMode) {
+            Text("appointment.capture.mode.scan")
+                .tag(CaptureMode.scan)
+            Text("appointment.capture.mode.manual")
+                .tag(CaptureMode.manual)
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, LinearDesign.Spacing.xxSmall)
+        .disabled(isAnalyzing)
+    }
+
     private var heroCard: some View {
         VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
             Text("appointment.capture.title")
@@ -89,26 +131,11 @@ struct AddAppointmentView: View {
                 .foregroundStyle(LinearDesign.Colors.primaryText)
 
             Group {
-                if let selectedImage {
-                    Image(uiImage: selectedImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity)
-                        .frame(maxHeight: 380)
-                        .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
-                } else {
-                    RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous)
-                        .fill(LinearDesign.Colors.level3Surface)
-                        .frame(height: 260)
-                        .overlay {
-                            VStack(spacing: LinearDesign.Spacing.medium) {
-                                Image(systemName: "camera.viewfinder")
-                                    .font(.system(size: 36, weight: .medium))
-                                Text("appointment.capture.no.zettel")
-                                    .font(LinearDesign.Typography.body)
-                            }
-                            .foregroundStyle(LinearDesign.Colors.tertiaryText)
-                        }
+                switch captureMode {
+                case .scan:
+                    scanHero
+                case .manual:
+                    manualHero
                 }
             }
         }
@@ -116,28 +143,16 @@ struct AddAppointmentView: View {
         .linearCard()
     }
 
-    private var captureControls: some View {
-        VStack(spacing: LinearDesign.Spacing.small) {
-            captureButton(title: String(localized: "appointment.capture.take.picture"), icon: "camera") {
-                showingCamera = true
-            }
-
-            captureButton(title: String(localized: "appointment.capture.choose.photos"), icon: "photo.on.rectangle") {
-                showingPhotoPicker = true
-            }
-        }
-    }
-
     private var uploadQuotaCard: some View {
-        VStack(alignment: .leading, spacing: LinearDesign.Spacing.small) {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.xSmall) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
                     Text("Monthly uploads")
                         .font(LinearDesign.Typography.captionMedium)
                         .foregroundStyle(LinearDesign.Colors.tertiaryText)
                     Text(verbatim: store.isUploadQuotaBypassed ? "Unlimited (debug)" : "\(store.uploadsRemainingThisMonth) left this month")
-                        .font(LinearDesign.Typography.bodyMedium)
-                        .foregroundStyle(LinearDesign.Colors.primaryText)
+                        .font(LinearDesign.Typography.smallMedium)
+                        .foregroundStyle(LinearDesign.Colors.secondaryText)
                 }
 
                 Spacer()
@@ -160,65 +175,42 @@ struct AddAppointmentView: View {
                     .foregroundStyle(LinearDesign.Colors.tertiaryText)
             } else {
                 Text(verbatim: "\(store.uploadsUsedThisMonth)/\(store.uploadLimitThisMonth) used (\(store.uploadPlan.title))")
-                    .font(LinearDesign.Typography.caption)
+                    .font(LinearDesign.Typography.label)
                     .foregroundStyle(LinearDesign.Colors.tertiaryText)
             }
         }
-        .padding(LinearDesign.Spacing.medium)
+        .padding(.horizontal, LinearDesign.Spacing.medium)
+        .padding(.vertical, LinearDesign.Spacing.small)
         .linearCard()
     }
 
-    private func captureButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private var primaryActionButton: some View {
+        Button(action: primaryAction) {
             HStack {
-                Image(systemName: icon)
-                    .font(LinearDesign.Typography.bodyMedium)
-                Text(title)
-                    .font(LinearDesign.Typography.bodyMedium)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(LinearDesign.Typography.caption)
-                    .foregroundStyle(LinearDesign.Colors.quaternaryText)
-            }
-            .padding(LinearDesign.Spacing.medium)
-            .frame(height: 54)
-            .background(LinearDesign.Colors.level3Surface)
-            .foregroundStyle(LinearDesign.Colors.primaryText)
-            .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
-            .overlay(
-                RoundedRectangle(cornerRadius: LinearDesign.Radius.medium)
-                    .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
-            )
-        }
-    }
-
-    private var analyzeButton: some View {
-        Button(action: analyze) {
-            HStack {
-                if isAnalyzing {
+                if captureMode == .scan && isAnalyzing {
                     ProgressView()
                         .tint(.white)
                 } else {
-                    Image(systemName: "wand.and.stars")
+                    Image(systemName: captureMode == .scan ? "wand.and.stars" : "square.and.pencil")
                 }
 
-                Text(isAnalyzing ? "appointment.analyzing" : "appointment.analyze.button")
+                Text(primaryActionTitle)
                     .font(LinearDesign.Typography.bodyMedium)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(isAnalyzeButtonDisabled ? LinearDesign.Colors.borderSecondary : LinearDesign.Colors.accentViolet)
-            .foregroundStyle(isAnalyzeButtonDisabled ? LinearDesign.Colors.tertiaryText : .white)
+            .background(isPrimaryActionDisabled ? LinearDesign.Colors.borderSecondary : LinearDesign.Colors.accentViolet)
+            .foregroundStyle(isPrimaryActionDisabled ? LinearDesign.Colors.tertiaryText : .white)
             .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
         }
-        .disabled(isAnalyzeButtonDisabled)
+        .disabled(isPrimaryActionDisabled)
     }
 
     private var analyzeButtonBar: some View {
         VStack(spacing: LinearDesign.Spacing.small) {
-            analyzeButton
+            primaryActionButton
 
-            if !store.canUploadMoreThisMonth {
+            if captureMode == .scan && !store.canUploadMoreThisMonth {
                 Button("Upgrade plan") {
                     showingPlans = true
                 }
@@ -230,6 +222,192 @@ struct AddAppointmentView: View {
         .padding(.top, LinearDesign.Spacing.small)
         .padding(.bottom, LinearDesign.Spacing.small)
         .background(LinearDesign.Colors.panelDark)
+    }
+
+    private var scanHero: some View {
+        VStack(spacing: LinearDesign.Spacing.small) {
+            if let selectedImage {
+                Image(uiImage: selectedImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .frame(maxHeight: 320)
+                    .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
+
+                selectedImageActions
+            } else {
+                emptyCaptureButton
+            }
+        }
+    }
+
+    private var emptyCaptureButton: some View {
+        Button(action: presentCaptureSourceDialog) {
+            VStack(spacing: LinearDesign.Spacing.large) {
+                Image(systemName: "camera.viewfinder")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundStyle(LinearDesign.Colors.secondaryText)
+
+                VStack(spacing: LinearDesign.Spacing.xSmall) {
+                    Text("appointment.capture.empty.title")
+                        .font(LinearDesign.Typography.heading3)
+                        .foregroundStyle(LinearDesign.Colors.primaryText)
+
+                    Text("appointment.capture.empty.detail")
+                        .font(LinearDesign.Typography.body)
+                        .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                HStack(spacing: LinearDesign.Spacing.xSmall) {
+                    Image(systemName: "plus")
+                    Text("appointment.capture.add.note")
+                }
+                .font(LinearDesign.Typography.bodyMedium)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(LinearDesign.Colors.accentViolet)
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
+            }
+            .padding(LinearDesign.Spacing.large)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 260)
+            .background(LinearDesign.Colors.secondarySurface.opacity(0.45))
+            .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous)
+                    .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isAnalyzing)
+        .opacity(isAnalyzing ? 0.6 : 1)
+    }
+
+    private var selectedImageActions: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: LinearDesign.Spacing.small) {
+                if isCameraAvailable {
+                    compactCaptureActionButton(title: "appointment.capture.retake.photo", icon: "camera") {
+                        showingCamera = true
+                    }
+                }
+
+                compactCaptureActionButton(title: "appointment.capture.choose.different.photo", icon: "photo.on.rectangle") {
+                    showingPhotoPicker = true
+                }
+            }
+
+            VStack(spacing: LinearDesign.Spacing.small) {
+                if isCameraAvailable {
+                    compactCaptureActionButton(title: "appointment.capture.retake.photo", icon: "camera") {
+                        showingCamera = true
+                    }
+                }
+
+                compactCaptureActionButton(title: "appointment.capture.choose.different.photo", icon: "photo.on.rectangle") {
+                    showingPhotoPicker = true
+                }
+            }
+        }
+    }
+
+    private func compactCaptureActionButton(title: LocalizedStringKey, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label {
+                Text(title)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            } icon: {
+                Image(systemName: icon)
+            }
+            .font(LinearDesign.Typography.smallMedium)
+            .frame(maxWidth: .infinity)
+            .frame(height: 40)
+            .padding(.horizontal, LinearDesign.Spacing.small)
+            .background(Color.white.opacity(0.04))
+            .foregroundStyle(LinearDesign.Colors.primaryText)
+            .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinearDesign.Radius.medium)
+                    .stroke(LinearDesign.Colors.borderStandard, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isAnalyzing)
+        .opacity(isAnalyzing ? 0.6 : 1)
+    }
+
+    private var isCameraAvailable: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
+    }
+
+    private func presentCaptureSourceDialog() {
+        guard !isAnalyzing else { return }
+        showingCaptureSourceDialog = true
+    }
+
+    private var manualHero: some View {
+        VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
+            VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
+                Text("appointment.confirm.datetime")
+                    .font(LinearDesign.Typography.labelMedium)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+
+                DatePicker("", selection: $manualScheduledAt)
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .tint(LinearDesign.Colors.accentViolet)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
+                Text("appointment.confirm.what.field")
+                    .font(LinearDesign.Typography.labelMedium)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+
+                TextField("", text: $manualWhat)
+                    .linearInputField()
+                    .textInputAutocapitalization(.sentences)
+            }
+
+            VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
+                Text("appointment.confirm.location.field")
+                    .font(LinearDesign.Typography.labelMedium)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+
+                TextField("", text: $manualLocation)
+                    .linearInputField()
+                    .textInputAutocapitalization(.words)
+            }
+
+            VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
+                Text("appointment.confirm.withwhom.field")
+                    .font(LinearDesign.Typography.labelMedium)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+
+                TextField("", text: $manualWithWhom)
+                    .linearInputField()
+                    .textInputAutocapitalization(.words)
+            }
+        }
+    }
+
+    private var primaryActionTitle: LocalizedStringKey {
+        if captureMode == .scan {
+            return isAnalyzing ? "appointment.analyzing" : "appointment.analyze.button"
+        }
+
+        return "appointment.capture.enter.manually"
+    }
+
+    private func primaryAction() {
+        if captureMode == .scan {
+            analyze()
+        } else {
+            createManualDraft()
+        }
     }
 
     private func analyze() {
@@ -255,7 +433,32 @@ struct AddAppointmentView: View {
         }
     }
 
-    private var isAnalyzeButtonDisabled: Bool {
-        selectedImage == nil || isAnalyzing || !store.canUploadMoreThisMonth
+    private func createManualDraft() {
+        var draft = store.createManualDraft()
+        draft.scheduledAt = manualScheduledAt
+        draft.what = trimmedManualWhat
+        draft.location = trimmedManualLocation
+        draft.withWhom = trimmedManualWithWhom
+        pendingDraft = draft
+    }
+
+    private var isPrimaryActionDisabled: Bool {
+        if captureMode == .manual {
+            return isAnalyzing || trimmedManualWhat.isEmpty
+        }
+
+        return selectedImage == nil || isAnalyzing || !store.canUploadMoreThisMonth
+    }
+
+    private var trimmedManualWhat: String {
+        manualWhat.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedManualLocation: String {
+        manualLocation.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedManualWithWhom: String {
+        manualWithWhom.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

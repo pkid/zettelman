@@ -22,7 +22,9 @@ struct AppointmentConfirmationView: View {
             ScrollView {
                 VStack(spacing: LinearDesign.Spacing.medium) {
                     formSection
-                    imageSection
+                    if previewImage != nil {
+                        imageSection
+                    }
                 }
                 .padding(LinearDesign.Spacing.medium)
             }
@@ -130,6 +132,10 @@ struct AppointmentConfirmationView: View {
         return UIImage(data: data)
     }
 
+    private var isLocationRequired: Bool {
+        editedDraft.uploadedZettel != nil || editedDraft.previewImageData != nil
+    }
+
     private func save() {
         let trimmedWhat = editedDraft.what.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedWhere = editedDraft.location.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -146,7 +152,7 @@ struct AppointmentConfirmationView: View {
             return
         }
 
-        guard !trimmedWhere.isEmpty else {
+        guard !isLocationRequired || !trimmedWhere.isEmpty else {
             alertMessage = String(localized: "appointment.confirm.save.error.location")
             showingAlert = true
             return

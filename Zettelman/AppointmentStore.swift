@@ -118,6 +118,19 @@ final class AppointmentStore: ObservableObject {
         )
     }
 
+    func createManualDraft() -> AppointmentDraft {
+        AppointmentDraft(
+            scheduledAt: Date(),
+            reminderEnabled: true,
+            addToCalendar: true,
+            what: "",
+            location: "",
+            withWhom: "",
+            previewImageData: nil,
+            rawDateTime: nil
+        )
+    }
+
     func saveDraft(_ draft: AppointmentDraft) async throws {
         isSaving = true
         errorMessage = nil
@@ -140,7 +153,9 @@ final class AppointmentStore: ObservableObject {
 
         do {
             let calendarResult = await calendarService.addEventIfNeeded(for: appointment, requestAuthorizationIfNeeded: true)
-            if case let .added(eventIdentifier) = calendarResult {
+            if case let .added(eventIdentifier) = calendarResult,
+               let eventIdentifier,
+               !eventIdentifier.isEmpty {
                 appointment.calendarEventIdentifier = eventIdentifier
                 replaceAppointment(appointment)
             }
@@ -318,34 +333,45 @@ final class AppointmentStore: ObservableObject {
         let message: String
         let isSuccess: Bool
         let requiresCalendarAccessPrompt: Bool
+        let suggestsWritableDefaultCalendarFix: Bool
 
         switch calendarResult {
         case .added(_):
             message = String(localized: "save.confirm.success.calendar")
             isSuccess = true
             requiresCalendarAccessPrompt = false
+            suggestsWritableDefaultCalendarFix = false
         case .disabled:
             message = String(localized: "save.confirm.disabled")
             isSuccess = true
             requiresCalendarAccessPrompt = false
+            suggestsWritableDefaultCalendarFix = false
         case .permissionDenied:
             message = String(localized: "save.confirm.permission.denied")
             isSuccess = false
             requiresCalendarAccessPrompt = true
+            suggestsWritableDefaultCalendarFix = false
+        case .calendarReadOnly:
+            message = String(localized: "save.confirm.readonly.message")
+            isSuccess = false
+            requiresCalendarAccessPrompt = true
+            suggestsWritableDefaultCalendarFix = true
         case let .failed(details):
             if details.isEmpty {
                 message = String(localized: "save.confirm.failed.empty")
             } else {
-                message = String(localized: "save.confirm.failed")
+                message = details
             }
             isSuccess = false
-            requiresCalendarAccessPrompt = true
+            requiresCalendarAccessPrompt = false
+            suggestsWritableDefaultCalendarFix = false
         }
 
         saveConfirmation = SaveConfirmation(
             message: message,
             isSuccess: isSuccess,
-            requiresCalendarAccessPrompt: requiresCalendarAccessPrompt
+            requiresCalendarAccessPrompt: requiresCalendarAccessPrompt,
+            suggestsWritableDefaultCalendarFix: suggestsWritableDefaultCalendarFix
         )
     }
 }
@@ -355,6 +381,7 @@ struct SaveConfirmation: Identifiable, Equatable {
     let message: String
     let isSuccess: Bool
     let requiresCalendarAccessPrompt: Bool
+    let suggestsWritableDefaultCalendarFix: Bool
 }
 
 private extension String {
@@ -439,7 +466,9 @@ final class AppointmentReminderService {
             withWhomPart = ""
         }
 
-        return String(format: String(localized: "notification.body.template"), appointment.what, appointment.location, withWhomPart)
+        let location = appointment.location.trimmingCharacters(in: .whitespacesAndNewlines)
+        let reminderLocation = location.isEmpty ? String(localized: "draft.location.unknown") : location
+        return String(format: String(localized: "notification.body.template"), appointment.what, reminderLocation, withWhomPart)
     }
 
     private func ensureNotificationPermission(requestAuthorizationIfNeeded: Bool) async -> Bool {
@@ -506,12 +535,14 @@ final class AppointmentReminderService {
 final class AppointmentCalendarService {
     enum Result {
         case disabled
-        case added(String)
+        case added(String?)
         case permissionDenied
+        case calendarReadOnly(message: String)
         case failed(message: String)
     }
 
     private let eventStore: EKEventStore
+    // Default new calendar events to a one-hour time block.
     private let defaultEventDuration: TimeInterval = 60 * 60
     private let reminderLeadTime: TimeInterval = 24 * 60 * 60
 
@@ -528,6 +559,12 @@ final class AppointmentCalendarService {
         do {
             let eventIdentifier = try createEvent(for: appointment)
             return .added(eventIdentifier)
+        } catch CalendarSaveError.noWritableCalendar {
+            return .calendarReadOnly(message: String(localized: "calendar.error.no.writable"))
+        } catch let error as NSError
+            where error.domain == EKErrorDomain &&
+            (error.code == EKError.calendarReadOnly.rawValue || error.code == EKError.Code.noCalendar.rawValue) {
+            return .calendarReadOnly(message: error.localizedDescription)
         } catch {
             return .failed(message: error.localizedDescription)
         }
@@ -541,32 +578,44 @@ final class AppointmentCalendarService {
         try? eventStore.remove(event, span: .thisEvent, commit: true)
     }
 
-    private func createEvent(for appointment: Appointment) throws -> String {
-        guard let calendar = preferredWritableCalendar() else {
-            throw CalendarSaveError.noWritableCalendar
+    private func createEvent(for appointment: Appointment) throws -> String? {
+        let event = EKEvent(eventStore: eventStore)
+        if !isWriteOnlyAccessEnabled {
+            guard let calendar = preferredWritableCalendar() else {
+                throw CalendarSaveError.noWritableCalendar
+            }
+
+            event.calendar = calendar
         }
 
-        let event = EKEvent(eventStore: eventStore)
-        event.calendar = calendar
         event.title = appointment.what
-        event.location = appointment.location
+        let location = appointment.location.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !location.isEmpty {
+            event.location = location
+        }
+        event.isAllDay = false
+        event.timeZone = .current
         event.startDate = appointment.scheduledAt
         event.endDate = appointment.scheduledAt.addingTimeInterval(defaultEventDuration)
-        event.alarms = [EKAlarm(relativeOffset: -reminderLeadTime)]
+        if appointment.reminderEnabled {
+            event.alarms = [EKAlarm(relativeOffset: -reminderLeadTime)]
+        }
 
         if let withWhom = appointment.withWhom, !withWhom.isEmpty {
             event.notes = String(format: String(localized: "calendar.event.notes.with"), withWhom)
         }
 
-        do {
-            try eventStore.save(event, span: .thisEvent, commit: true)
-        } catch let error as NSError where error.domain == EKErrorDomain && error.code == EKError.calendarReadOnly.rawValue {
-            guard let fallbackCalendar = alternateWritableCalendar(excluding: calendar.calendarIdentifier) else {
-                throw error
-            }
+        try saveEventWithFallbacks(
+            event,
+            allowAlternateCalendarRetry: !isWriteOnlyAccessEnabled,
+            allowWriteOnlyCalendarRetry: isWriteOnlyAccessEnabled,
+            allowAlarmRemovalRetry: appointment.reminderEnabled
+        )
 
-            event.calendar = fallbackCalendar
-            try eventStore.save(event, span: .thisEvent, commit: true)
+        // Under iOS 17 write-only calendar access, EventKit can save the event
+        // without giving the app a readable identifier back.
+        if isWriteOnlyAccessEnabled {
+            return event.eventIdentifier
         }
 
         guard let eventIdentifier = event.eventIdentifier else {
@@ -576,7 +625,64 @@ final class AppointmentCalendarService {
         return eventIdentifier
     }
 
+    private func saveEventWithFallbacks(
+        _ event: EKEvent,
+        allowAlternateCalendarRetry: Bool,
+        allowWriteOnlyCalendarRetry: Bool,
+        allowAlarmRemovalRetry: Bool
+    ) throws {
+        do {
+            try eventStore.save(event, span: .thisEvent, commit: true)
+        } catch let error as NSError {
+            if allowAlternateCalendarRetry,
+               error.domain == EKErrorDomain,
+               error.code == EKError.calendarReadOnly.rawValue,
+               let currentCalendarIdentifier = event.calendar?.calendarIdentifier,
+               let fallbackCalendar = alternateWritableCalendar(excluding: currentCalendarIdentifier) {
+                event.calendar = fallbackCalendar
+                try saveEventWithFallbacks(
+                    event,
+                    allowAlternateCalendarRetry: false,
+                    allowWriteOnlyCalendarRetry: allowWriteOnlyCalendarRetry,
+                    allowAlarmRemovalRetry: allowAlarmRemovalRetry
+                )
+                return
+            }
+
+            if allowWriteOnlyCalendarRetry,
+               error.domain == EKErrorDomain,
+               error.code == EKError.Code.noCalendar.rawValue,
+               let fallbackCalendar = eventStore.defaultCalendarForNewEvents ?? eventStore.calendars(for: .event).first {
+                event.calendar = fallbackCalendar
+                try saveEventWithFallbacks(
+                    event,
+                    allowAlternateCalendarRetry: false,
+                    allowWriteOnlyCalendarRetry: false,
+                    allowAlarmRemovalRetry: allowAlarmRemovalRetry
+                )
+                return
+            }
+
+            if allowAlarmRemovalRetry, !(event.alarms?.isEmpty ?? true) {
+                event.alarms = nil
+                try saveEventWithFallbacks(
+                    event,
+                    allowAlternateCalendarRetry: allowAlternateCalendarRetry,
+                    allowWriteOnlyCalendarRetry: allowWriteOnlyCalendarRetry,
+                    allowAlarmRemovalRetry: false
+                )
+                return
+            }
+
+            throw error
+        }
+    }
+
     private func preferredWritableCalendar() -> EKCalendar? {
+        if isWriteOnlyAccessEnabled {
+            return eventStore.defaultCalendarForNewEvents ?? eventStore.calendars(for: .event).first
+        }
+
         if let defaultCalendar = eventStore.defaultCalendarForNewEvents,
            defaultCalendar.allowsContentModifications {
             return defaultCalendar
@@ -598,6 +704,14 @@ final class AppointmentCalendarService {
         eventStore
             .calendars(for: .event)
             .filter(\.allowsContentModifications)
+    }
+
+    private var isWriteOnlyAccessEnabled: Bool {
+        if #available(iOS 17.0, *) {
+            return EKEventStore.authorizationStatus(for: .event) == .writeOnly
+        }
+
+        return false
     }
 
     private func ensureCalendarPermission(requestAuthorizationIfNeeded: Bool) async -> Bool {

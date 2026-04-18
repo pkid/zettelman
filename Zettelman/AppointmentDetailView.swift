@@ -23,19 +23,7 @@ struct AppointmentDetailView: View {
             VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
                 detailsCard
 
-                S3ZettelImageView(
-                    key: appointment.uploadedZettel.key,
-                    cornerRadius: LinearDesign.Radius.xLarge,
-                    contentMode: .fit
-                )
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 360)
-                .padding(.top, LinearDesign.Spacing.xxSmall)
-                .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    showingImagePreview = true
-                }
+                imageSection
             }
             .padding(LinearDesign.Spacing.medium)
         }
@@ -78,14 +66,16 @@ struct AppointmentDetailView: View {
             ZStack(alignment: .topTrailing) {
                 Color.black.ignoresSafeArea()
 
-                S3ZettelImageView(
-                    key: appointment.uploadedZettel.key,
-                    cornerRadius: 0,
-                    contentMode: .fit
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, LinearDesign.Spacing.small)
-                .padding(.vertical, LinearDesign.Spacing.medium)
+                if let key = uploadedZettelKey {
+                    S3ZettelImageView(
+                        key: key,
+                        cornerRadius: 0,
+                        contentMode: .fit
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, LinearDesign.Spacing.small)
+                    .padding(.vertical, LinearDesign.Spacing.medium)
+                }
 
                 Button {
                     showingImagePreview = false
@@ -100,6 +90,44 @@ struct AppointmentDetailView: View {
         }
     }
 
+    @ViewBuilder
+    private var imageSection: some View {
+        if let key = uploadedZettelKey {
+            S3ZettelImageView(
+                key: key,
+                cornerRadius: LinearDesign.Radius.xLarge,
+                contentMode: .fit
+            )
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 360)
+            .padding(.top, LinearDesign.Spacing.xxSmall)
+            .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                showingImagePreview = true
+            }
+        } else {
+            RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous)
+                .fill(LinearDesign.Colors.level3Surface)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 220)
+                .overlay {
+                    VStack(spacing: LinearDesign.Spacing.small) {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 36, weight: .medium))
+                        Text("appointment.detail.no.source.image")
+                            .font(LinearDesign.Typography.caption)
+                    }
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                }
+                .padding(.top, LinearDesign.Spacing.xxSmall)
+        }
+    }
+
+    private var uploadedZettelKey: String? {
+        appointment.uploadedZettel?.key
+    }
+
     private var detailsCard: some View {
         VStack(alignment: .leading, spacing: LinearDesign.Spacing.medium) {
             detailRow(title: String(localized: "appointment.detail.datetime"), value: formattedDate(appointment.scheduledAt))
@@ -107,7 +135,9 @@ struct AppointmentDetailView: View {
             if let withWhom = appointment.withWhom, !withWhom.isEmpty {
                 detailRow(title: String(localized: "appointment.detail.withwhom"), value: withWhom)
             }
-            locationRow
+            if hasLocation {
+                locationRow
+            }
         }
         .padding(LinearDesign.Spacing.large)
         .linearCard()
@@ -128,6 +158,10 @@ struct AppointmentDetailView: View {
 
     private func formattedDate(_ date: Date) -> String {
         date.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    private var hasLocation: Bool {
+        !appointment.location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var locationRow: some View {

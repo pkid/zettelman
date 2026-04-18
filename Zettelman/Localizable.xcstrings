@@ -74,23 +74,152 @@
         }
       }
     },
-    "appointment.capture.choose.photos" : {
+    "appointment.capture.add.note" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aus Fotos wählen"
+            "value" : "Zettel hinzufügen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose from photos"
+            "value" : "Add note"
+          }
+        }
+      }
+    },
+    "appointment.capture.choose.different.photo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anderes Foto wählen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose another photo"
+          }
+        }
+      }
+    },
+    "appointment.capture.choose.photos" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus Mediathek wählen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose from library"
+          }
+        }
+      }
+    },
+    "appointment.capture.empty.detail" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mache ein Foto oder wähle eines aus deiner Mediathek, um den Termin automatisch zu erfassen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take a photo or choose one from your library to extract the appointment automatically."
+          }
+        }
+      }
+    },
+    "appointment.capture.empty.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zettel zum Scannen hinzufügen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a note to scan"
+          }
+        }
+      }
+    },
+    "appointment.capture.enter.manually" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manuell eingeben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter manually"
+          }
+        }
+      }
+    },
+    "appointment.capture.mode.label" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfassungsmodus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capture mode"
+          }
+        }
+      }
+    },
+    "appointment.capture.mode.manual" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manuell"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manual"
+          }
+        }
+      }
+    },
+    "appointment.capture.mode.scan" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan"
           }
         }
       }
     },
     "appointment.capture.no.zettel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -106,6 +235,54 @@
         }
       }
     },
+    "appointment.capture.retake.photo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto neu aufnehmen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retake photo"
+          }
+        }
+      }
+    },
+    "appointment.capture.source.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle aus, wie du den Zettel hinzufügen möchtest."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose how you want to add the note."
+          }
+        }
+      }
+    },
+    "appointment.capture.source.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zettel hinzufügen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add note"
+          }
+        }
+      }
+    },
     "appointment.capture.take.picture" : {
       "localizations" : {
         "de" : {
@@ -117,7 +294,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Take picture"
+            "value" : "Take photo"
           }
         }
       }
@@ -127,13 +304,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zettel erfassen"
+            "value" : "Zettel hinzufügen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capture note"
+            "value" : "Add note"
           }
         }
       }
@@ -504,6 +681,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Location"
+          }
+        }
+      }
+    },
+    "appointment.detail.no.source.image" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Quellbild (manueller Eintrag)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No source image (manual entry)"
           }
         }
       }
@@ -1410,6 +1603,22 @@
         }
       }
     },
+    "common.or" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "oder"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or"
+          }
+        }
+      }
+    },
     "common.open.settings" : {
       "localizations" : {
         "de" : {
@@ -1598,6 +1807,7 @@
       }
     },
     "save.confirm.failed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1641,6 +1851,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appointment saved. Calendar access was denied."
+          }
+        }
+      }
+    },
+    "save.confirm.readonly.action.change.default" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalender wechseln"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change calendar"
+          }
+        }
+      }
+    },
+    "save.confirm.readonly.action.grant.full" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vollen Zugriff"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow full access"
+          }
+        }
+      }
+    },
+    "save.confirm.readonly.help.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein iPhone speichert neue Termine in einem Kalender, in den diese App nicht schreiben darf. Gehe in den Einstellungen zu Apps › Kalender › Standardkalender und wähle einen beschreibbaren Kalender wie iCloud."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your iPhone is saving new events to a calendar this app can't write to. In Settings, go to Apps › Calendar › Default Calendar and choose a writable calendar such as iCloud."
+          }
+        }
+      }
+    },
+    "save.confirm.readonly.help.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standardkalender ändern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change your default calendar"
+          }
+        }
+      }
+    },
+    "save.confirm.readonly.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standardkalender ist schreibgeschützt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default calendar is read-only."
           }
         }
       }

@@ -7,6 +7,7 @@ struct AppointmentListView: View {
     @StateObject private var store = AppointmentStore()
     @State private var showingComposer = false
     @State private var showingAccountPopup = false
+    @State private var showingWritableCalendarHelp = false
     @State private var confirmationDismissTask: Task<Void, Never>?
 
     var body: some View {
@@ -64,6 +65,11 @@ struct AppointmentListView: View {
             Button("common.ok", role: .cancel) { }
         } message: {
             Text(authManager.userEmail ?? String(localized: "appointments.unknown.user"))
+        }
+        .alert("save.confirm.readonly.help.title", isPresented: $showingWritableCalendarHelp) {
+            Button("common.ok", role: .cancel) { }
+        } message: {
+            Text("save.confirm.readonly.help.message")
         }
         .sheet(isPresented: $showingComposer) {
             AddAppointmentView(store: store)
@@ -173,17 +179,22 @@ struct AppointmentListView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                HStack(spacing: LinearDesign.Spacing.small) {
-                    if confirmation.requiresCalendarAccessPrompt {
-                        Button("common.open.settings") {
-                            openCalendarSettings()
+                HStack(spacing: LinearDesign.Spacing.xxSmall) {
+                    if confirmation.suggestsWritableDefaultCalendarFix {
+                        bannerActionButton("save.confirm.readonly.action.grant.full") {
+                            openAppSettings()
                         }
-                        .font(LinearDesign.Typography.labelMedium)
-                        .padding(.horizontal, LinearDesign.Spacing.small)
-                        .padding(.vertical, LinearDesign.Spacing.xxSmall)
-                        .background(LinearDesign.Colors.level3Surface, in: Capsule())
-                        .foregroundStyle(LinearDesign.Colors.primaryText)
-                        .buttonStyle(.plain)
+                        Text("common.or")
+                            .font(LinearDesign.Typography.caption)
+                            .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                            .padding(.horizontal, LinearDesign.Spacing.xxSmall)
+                        bannerActionButton("save.confirm.readonly.action.change.default") {
+                            showingWritableCalendarHelp = true
+                        }
+                    } else if confirmation.requiresCalendarAccessPrompt {
+                        bannerActionButton("common.open.settings") {
+                            openAppSettings()
+                        }
                     }
 
                     Spacer(minLength: 0)
@@ -209,6 +220,16 @@ struct AppointmentListView: View {
         }
     }
 
+    private func bannerActionButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .font(LinearDesign.Typography.labelMedium)
+            .padding(.horizontal, LinearDesign.Spacing.small)
+            .padding(.vertical, LinearDesign.Spacing.xxSmall)
+            .background(LinearDesign.Colors.level3Surface, in: Capsule())
+            .foregroundStyle(LinearDesign.Colors.primaryText)
+            .buttonStyle(.plain)
+    }
+
     private func scheduleSaveConfirmationDismiss(for confirmation: SaveConfirmation?) {
         confirmationDismissTask?.cancel()
         confirmationDismissTask = nil
@@ -228,7 +249,7 @@ struct AppointmentListView: View {
         }
     }
 
-    private func openCalendarSettings() {
+    private func openAppSettings() {
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         openURL(settingsURL)
     }
@@ -240,15 +261,7 @@ private struct AppointmentCardRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: LinearDesign.Spacing.medium) {
-            S3ZettelImageView(
-                key: appointment.uploadedZettel.key,
-                cornerRadius: LinearDesign.Radius.large,
-                contentMode: .fit
-            )
-            .aspectRatio(1, contentMode: .fit)
-            .frame(width: thumbnailSide, height: thumbnailSide)
-            .background(LinearDesign.Colors.level3Surface, in: RoundedRectangle(cornerRadius: LinearDesign.Radius.large))
-            .clipped()
+            thumbnail
 
             VStack(alignment: .leading, spacing: LinearDesign.Spacing.xxSmall) {
                 Text(appointment.what)
@@ -264,14 +277,16 @@ private struct AppointmentCardRow: View {
                 }
                 .foregroundStyle(LinearDesign.Colors.secondaryText)
 
-                HStack(spacing: LinearDesign.Spacing.xxSmall) {
-                    Image(systemName: "mappin.and.ellipse")
-                        .font(.caption)
-                    Text(appointment.location)
-                        .font(LinearDesign.Typography.caption)
+                if !appointment.location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    HStack(spacing: LinearDesign.Spacing.xxSmall) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.caption)
+                        Text(appointment.location)
+                            .font(LinearDesign.Typography.caption)
+                    }
+                    .foregroundStyle(LinearDesign.Colors.secondaryText)
+                    .lineLimit(2)
                 }
-                .foregroundStyle(LinearDesign.Colors.secondaryText)
-                .lineLimit(2)
 
                 if let withWhom = appointment.withWhom, !withWhom.isEmpty {
                     HStack(spacing: LinearDesign.Spacing.xxSmall) {
@@ -296,5 +311,51 @@ private struct AppointmentCardRow: View {
             RoundedRectangle(cornerRadius: LinearDesign.Radius.large)
                 .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
         )
+    }
+
+    @ViewBuilder
+    private var thumbnail: some View {
+        if let key = appointment.uploadedZettel?.key {
+            S3ZettelImageView(
+                key: key,
+                cornerRadius: LinearDesign.Radius.large,
+                contentMode: .fit
+            )
+            .aspectRatio(1, contentMode: .fit)
+            .frame(width: thumbnailSide, height: thumbnailSide)
+            .background(LinearDesign.Colors.level3Surface, in: RoundedRectangle(cornerRadius: LinearDesign.Radius.large))
+            .clipped()
+        } else {
+            VStack(spacing: 2) {
+                Text(appointment.scheduledAt, format: .dateTime.month(.abbreviated))
+                    .font(LinearDesign.Typography.caption)
+                    .foregroundStyle(LinearDesign.Colors.accentViolet)
+                    .textCase(.uppercase)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+
+                Text(appointment.scheduledAt, format: .dateTime.day())
+                    .font(.system(size: 30, weight: .semibold, design: .rounded))
+                    .foregroundStyle(LinearDesign.Colors.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+
+                Text(appointment.scheduledAt, format: .dateTime.weekday(.abbreviated))
+                    .font(LinearDesign.Typography.caption)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                    .textCase(.uppercase)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(width: thumbnailSide, height: thumbnailSide)
+            .background(
+                LinearDesign.Colors.level3Surface,
+                in: RoundedRectangle(cornerRadius: LinearDesign.Radius.large, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: LinearDesign.Radius.large, style: .continuous)
+                    .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
+            )
+        }
     }
 }
