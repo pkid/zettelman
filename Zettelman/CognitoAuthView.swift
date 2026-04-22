@@ -53,7 +53,7 @@ struct CognitoAuthView: View {
                     .frame(width: 80, height: 80)
 
                 Image(systemName: "note.text.badge.plus")
-                    .font(.system(size: 36, weight: .medium))
+                    .font(.system(.largeTitle, design: .default).weight(.medium))
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
             }
 
@@ -126,7 +126,8 @@ struct CognitoAuthView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 40)
+                .frame(minHeight: 44)
+                .padding(.vertical, LinearDesign.Spacing.xSmall)
                 .background(LinearDesign.Colors.accentViolet)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
@@ -353,9 +354,9 @@ struct LinearPasswordField: View {
                 isTextVisible.toggle()
             } label: {
                 Image(systemName: isTextVisible ? "eye.slash" : "eye")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(.body, design: .default).weight(.medium))
                     .foregroundStyle(LinearDesign.Colors.secondaryText)
-                    .frame(width: 20, height: 20)
+                    .frame(minWidth: 20, minHeight: 20)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isTextVisible ? "Hide password" : "Show password")

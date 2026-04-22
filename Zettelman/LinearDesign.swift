@@ -8,9 +8,9 @@ enum LinearDesign {
         static let secondarySurface = Color(hex: "28282c")
 
         static let primaryText = Color(hex: "f7f8f8")
-        static let secondaryText = Color(hex: "d0d6e0")
-        static let tertiaryText = Color(hex: "8a8f98")
-        static let quaternaryText = Color(hex: "62666d")
+        static let secondaryText = Color(hex: "dfe3eb")
+        static let tertiaryText = Color(hex: "a8adb6")
+        static let quaternaryText = Color(hex: "868b94")
 
         static let brandIndigo = Color(hex: "5e6ad2")
         static let accentViolet = Color(hex: "7170ff")
@@ -32,9 +32,9 @@ enum LinearDesign {
             static let surface = Color(hex: "191a1b")
             static let surfaceHover = Color(hex: "28282c")
             static let text = Color(hex: "f7f8f8")
-            static let textSecondary = Color(hex: "d0d6e0")
-            static let textTertiary = Color(hex: "8a8f98")
-            static let textDisabled = Color(hex: "62666d")
+            static let textSecondary = Color(hex: "dfe3eb")
+            static let textTertiary = Color(hex: "a8adb6")
+            static let textDisabled = Color(hex: "868b94")
             static let accent = Color(hex: "7170ff")
             static let accentHover = Color(hex: "828fff")
             static let border = Color.white.opacity(0.08)
@@ -44,21 +44,26 @@ enum LinearDesign {
         }
     }
 
+    /// All typography tokens map to semantic `Font.TextStyle` values so they
+    /// scale with the user's Dynamic Type setting (Settings > Accessibility >
+    /// Display & Text Size > Larger Text). This is required for App Store
+    /// accessibility compliance and is what reviewers expect when evaluating
+    /// legibility.
     enum Typography {
-        static let display = Font.system(size: 48, weight: .medium, design: .default)
-        static let heading1 = Font.system(size: 32, weight: .regular, design: .default)
-        static let heading2 = Font.system(size: 24, weight: .regular, design: .default)
-        static let heading3 = Font.system(size: 20, weight: .semibold, design: .default)
-        static let bodyLarge = Font.system(size: 18, weight: .regular, design: .default)
-        static let body = Font.system(size: 16, weight: .regular, design: .default)
-        static let bodyMedium = Font.system(size: 16, weight: .medium, design: .default)
-        static let bodySemibold = Font.system(size: 16, weight: .semibold, design: .default)
-        static let small = Font.system(size: 15, weight: .regular, design: .default)
-        static let smallMedium = Font.system(size: 15, weight: .medium, design: .default)
-        static let caption = Font.system(size: 13, weight: .regular, design: .default)
-        static let captionMedium = Font.system(size: 13, weight: .medium, design: .default)
-        static let label = Font.system(size: 12, weight: .regular, design: .default)
-        static let labelMedium = Font.system(size: 12, weight: .medium, design: .default)
+        static let display = Font.system(.largeTitle, design: .default).weight(.medium)
+        static let heading1 = Font.system(.title, design: .default)
+        static let heading2 = Font.system(.title2, design: .default)
+        static let heading3 = Font.system(.title3, design: .default).weight(.semibold)
+        static let bodyLarge = Font.system(.body, design: .default)
+        static let body = Font.system(.body, design: .default)
+        static let bodyMedium = Font.system(.body, design: .default).weight(.medium)
+        static let bodySemibold = Font.system(.body, design: .default).weight(.semibold)
+        static let small = Font.system(.subheadline, design: .default)
+        static let smallMedium = Font.system(.subheadline, design: .default).weight(.medium)
+        static let caption = Font.system(.footnote, design: .default)
+        static let captionMedium = Font.system(.footnote, design: .default).weight(.medium)
+        static let label = Font.system(.caption, design: .default)
+        static let labelMedium = Font.system(.caption, design: .default).weight(.medium)
     }
 
     enum Spacing {
@@ -125,6 +130,8 @@ struct LinearButtonStyle: ButtonStyle {
     let variant: Variant
     let isLoading: Bool
 
+    @ScaledMetric(relativeTo: .body) private var minHeight: CGFloat = 40
+
     init(variant: Variant = .primary, isLoading: Bool = false) {
         self.variant = variant
         self.isLoading = isLoading
@@ -135,7 +142,8 @@ struct LinearButtonStyle: ButtonStyle {
             .font(LinearDesign.Typography.bodyMedium)
             .foregroundStyle(foregroundColor)
             .frame(maxWidth: .infinity)
-            .frame(height: 40)
+            .frame(minHeight: minHeight)
+            .padding(.vertical, LinearDesign.Spacing.xSmall)
             .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
             .overlay(
@@ -198,12 +206,15 @@ struct LinearCardStyle: ViewModifier {
 }
 
 struct LinearInputFieldStyle: ViewModifier {
+    @ScaledMetric(relativeTo: .body) private var minHeight: CGFloat = 40
+
     func body(content: Content) -> some View {
         content
             .font(LinearDesign.Typography.body)
             .foregroundStyle(LinearDesign.Colors.primaryText)
             .padding(.horizontal, LinearDesign.Spacing.medium)
-            .frame(maxWidth: .infinity, minHeight: 40)
+            .padding(.vertical, LinearDesign.Spacing.xSmall)
+            .frame(maxWidth: .infinity, minHeight: minHeight)
             .background(Color.white.opacity(0.02))
             .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
             .overlay(

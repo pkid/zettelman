@@ -27,11 +27,13 @@ struct UploadPlansView: View {
                         if isRestoringPurchases {
                             ProgressView()
                                 .frame(maxWidth: .infinity)
-                                .frame(height: 40)
+                                .frame(minHeight: 44)
+                                .padding(.vertical, LinearDesign.Spacing.xSmall)
                         } else {
                             Text("Restore purchases")
                                 .frame(maxWidth: .infinity)
-                                .frame(height: 40)
+                                .frame(minHeight: 44)
+                                .padding(.vertical, LinearDesign.Spacing.xSmall)
                         }
                     }
                     .font(LinearDesign.Typography.bodyMedium)
@@ -134,7 +136,6 @@ struct UploadPlansView: View {
                         Text(activePlanPurchase == plan ? "Processing..." : "Subscribe")
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
                 }
                 .buttonStyle(LinearButtonStyle(variant: .primary, isLoading: activePlanPurchase == plan))
                 .disabled(activePlanPurchase != nil || isRestoringPurchases)

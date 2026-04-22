@@ -81,7 +81,7 @@ struct AppointmentDetailView: View {
                     showingImagePreview = false
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 30, weight: .semibold))
+                        .font(.system(.title, design: .default).weight(.semibold))
                         .foregroundStyle(.white.opacity(0.9))
                 }
                 .padding(.top, LinearDesign.Spacing.medium)
@@ -114,7 +114,7 @@ struct AppointmentDetailView: View {
                 .overlay {
                     VStack(spacing: LinearDesign.Spacing.small) {
                         Image(systemName: "square.and.pencil")
-                            .font(.system(size: 36, weight: .medium))
+                            .font(.system(.largeTitle, design: .default).weight(.medium))
                         Text("appointment.detail.no.source.image")
                             .font(LinearDesign.Typography.caption)
                     }

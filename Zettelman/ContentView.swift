@@ -13,5 +13,10 @@ struct ContentView: View {
                     .environmentObject(authManager)
             }
         }
+        // Clamp the upper bound so text remains legible at large Dynamic Type
+        // sizes without layouts breaking at the absolute maximum (AX5). The
+        // app still scales fully up through accessibility3, which covers the
+        // vast majority of users with visual impairments.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
     }
 }

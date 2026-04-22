@@ -198,7 +198,8 @@ struct AddAppointmentView: View {
                     .font(LinearDesign.Typography.bodyMedium)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 48)
+            .frame(minHeight: 48)
+            .padding(.vertical, LinearDesign.Spacing.xSmall)
             .background(isPrimaryActionDisabled ? LinearDesign.Colors.borderSecondary : LinearDesign.Colors.accentViolet)
             .foregroundStyle(isPrimaryActionDisabled ? LinearDesign.Colors.tertiaryText : .white)
             .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
@@ -245,7 +246,7 @@ struct AddAppointmentView: View {
         Button(action: presentCaptureSourceDialog) {
             VStack(spacing: LinearDesign.Spacing.large) {
                 Image(systemName: "camera.viewfinder")
-                    .font(.system(size: 36, weight: .medium))
+                    .font(.system(.largeTitle, design: .default).weight(.medium))
                     .foregroundStyle(LinearDesign.Colors.secondaryText)
 
                 VStack(spacing: LinearDesign.Spacing.xSmall) {
@@ -265,7 +266,8 @@ struct AddAppointmentView: View {
                 }
                 .font(LinearDesign.Typography.bodyMedium)
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
+                .frame(minHeight: 48)
+                .padding(.vertical, LinearDesign.Spacing.xSmall)
                 .background(LinearDesign.Colors.accentViolet)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))
@@ -324,8 +326,9 @@ struct AddAppointmentView: View {
             }
             .font(LinearDesign.Typography.smallMedium)
             .frame(maxWidth: .infinity)
-            .frame(height: 40)
+            .frame(minHeight: 44)
             .padding(.horizontal, LinearDesign.Spacing.small)
+            .padding(.vertical, LinearDesign.Spacing.xSmall)
             .background(Color.white.opacity(0.04))
             .foregroundStyle(LinearDesign.Colors.primaryText)
             .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.medium))

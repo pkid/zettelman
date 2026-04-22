@@ -147,7 +147,7 @@ struct AppointmentListView: View {
                     .frame(width: 80, height: 80)
 
                 Image(systemName: "calendar.badge.plus")
-                    .font(.system(size: 36, weight: .medium))
+                    .font(.system(.largeTitle, design: .default).weight(.medium))
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
             }
 
@@ -185,7 +185,8 @@ struct AppointmentListView: View {
             Label("appointments.add.button", systemImage: "plus")
                 .font(LinearDesign.Typography.bodyMedium)
                 .padding(.horizontal, LinearDesign.Spacing.medium)
-                .frame(height: 48)
+                .padding(.vertical, LinearDesign.Spacing.small)
+                .frame(minHeight: 48)
                 .background(LinearDesign.Colors.accentViolet)
                 .foregroundStyle(.white)
                 .clipShape(Capsule())
@@ -326,7 +327,7 @@ struct AppointmentListView: View {
 
 private struct AppointmentCardRow: View {
     let appointment: Appointment
-    private let thumbnailSide: CGFloat = 86
+    @ScaledMetric(relativeTo: .title) private var thumbnailSide: CGFloat = 86
 
     var body: some View {
         HStack(alignment: .top, spacing: LinearDesign.Spacing.medium) {
@@ -404,10 +405,10 @@ private struct AppointmentCardRow: View {
                     .minimumScaleFactor(0.8)
 
                 Text(appointment.scheduledAt, format: .dateTime.day())
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
+                    .font(.system(.title, design: .rounded).weight(.semibold))
                     .foregroundStyle(LinearDesign.Colors.primaryText)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
 
                 Text(appointment.scheduledAt, format: .dateTime.weekday(.abbreviated))
                     .font(LinearDesign.Typography.caption)
