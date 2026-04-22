@@ -193,6 +193,20 @@ final class CognitoAuthManager: ObservableObject {
         errorMessage = nil
     }
 
+    func deleteAccount() async -> Result<Void, Error> {
+        errorMessage = nil
+
+        do {
+            try await Amplify.Auth.deleteUser()
+            resetSessionState()
+            return .success(())
+        } catch {
+            let friendlyError = normalizedAuthError(from: error)
+            errorMessage = friendlyError.localizedDescription
+            return .failure(friendlyError)
+        }
+    }
+
     private func resetSessionState() {
         isSignedIn = false
         userEmail = nil

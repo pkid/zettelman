@@ -7,6 +7,10 @@ struct AppointmentListView: View {
     @StateObject private var store = AppointmentStore()
     @State private var showingComposer = false
     @State private var showingAccountPopup = false
+    @State private var showingDeleteAccountConfirm = false
+    @State private var showingDeleteAccountError = false
+    @State private var deleteAccountErrorMessage: String?
+    @State private var isDeletingAccount = false
     @State private var showingWritableCalendarHelp = false
     @State private var confirmationDismissTask: Task<Void, Never>?
 
@@ -47,6 +51,7 @@ struct AppointmentListView: View {
                             .font(.title3)
                             .foregroundStyle(LinearDesign.Colors.secondaryText)
                     }
+                    .disabled(isDeletingAccount)
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
@@ -58,13 +63,34 @@ struct AppointmentListView: View {
                     }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.secondaryText)
+                    .disabled(isDeletingAccount)
                 }
             }
         }
-        .alert("appointments.signed.in.account", isPresented: $showingAccountPopup) {
-            Button("common.ok", role: .cancel) { }
+        .confirmationDialog(
+            "appointments.signed.in.account",
+            isPresented: $showingAccountPopup,
+            titleVisibility: .visible
+        ) {
+            Button("appointments.delete.account", role: .destructive) {
+                showingDeleteAccountConfirm = true
+            }
+            Button("common.cancel", role: .cancel) { }
         } message: {
             Text(authManager.userEmail ?? String(localized: "appointments.unknown.user"))
+        }
+        .alert("appointments.delete.account.confirm.title", isPresented: $showingDeleteAccountConfirm) {
+            Button("appointments.delete.account", role: .destructive) {
+                Task { await performAccountDeletion() }
+            }
+            Button("common.cancel", role: .cancel) { }
+        } message: {
+            Text("appointments.delete.account.confirm.message")
+        }
+        .alert("appointments.delete.account.error.title", isPresented: $showingDeleteAccountError) {
+            Button("common.ok", role: .cancel) { }
+        } message: {
+            Text(deleteAccountErrorMessage ?? String(localized: "auth.error.failed.tryagain"))
         }
         .alert("save.confirm.readonly.help.title", isPresented: $showingWritableCalendarHelp) {
             Button("common.ok", role: .cancel) { }
@@ -79,6 +105,11 @@ struct AppointmentListView: View {
                 saveConfirmationBanner
                     .padding(.horizontal, LinearDesign.Spacing.medium)
                     .frame(maxWidth: 440)
+            }
+        }
+        .overlay {
+            if isDeletingAccount {
+                deletingAccountOverlay
             }
         }
         .task {
@@ -228,6 +259,44 @@ struct AppointmentListView: View {
             .background(LinearDesign.Colors.level3Surface, in: Capsule())
             .foregroundStyle(LinearDesign.Colors.primaryText)
             .buttonStyle(.plain)
+    }
+
+    private var deletingAccountOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+
+            VStack(spacing: LinearDesign.Spacing.medium) {
+                ProgressView()
+                    .tint(LinearDesign.Colors.accentViolet)
+                Text("appointments.delete.account.progress")
+                    .font(LinearDesign.Typography.body)
+                    .foregroundStyle(LinearDesign.Colors.primaryText)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(LinearDesign.Spacing.xLarge)
+            .background(LinearDesign.Colors.level3Surface, in: RoundedRectangle(cornerRadius: LinearDesign.Radius.large))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinearDesign.Radius.large)
+                    .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
+            )
+        }
+        .transition(.opacity)
+    }
+
+    private func performAccountDeletion() async {
+        guard !isDeletingAccount else { return }
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+
+        let result = await authManager.deleteAccount()
+        switch result {
+        case .success:
+            store.reset()
+        case .failure(let error):
+            deleteAccountErrorMessage = error.localizedDescription
+            showingDeleteAccountError = true
+        }
     }
 
     private func scheduleSaveConfirmationDismiss(for confirmation: SaveConfirmation?) {

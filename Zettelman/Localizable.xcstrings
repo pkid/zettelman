@@ -861,6 +861,86 @@
         }
       }
     },
+    "appointments.delete.account" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account"
+          }
+        }
+      }
+    },
+    "appointments.delete.account.confirm.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dadurch werden dein Konto und alle zugehörigen Daten dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This will permanently delete your account and all associated data. This action cannot be undone."
+          }
+        }
+      }
+    },
+    "appointments.delete.account.confirm.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto löschen?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account?"
+          }
+        }
+      }
+    },
+    "appointments.delete.account.error.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto konnte nicht gelöscht werden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete account"
+          }
+        }
+      }
+    },
+    "appointments.delete.account.progress" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto wird gelöscht..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleting account..."
+          }
+        }
+      }
+    },
     "appointments.loading" : {
       "localizations" : {
         "de" : {
