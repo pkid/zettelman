@@ -109,6 +109,9 @@ struct AddAppointmentView: View {
         }
         .task {
             await store.refreshSubscriptionState()
+            if captureMode == .scan && !store.canUploadMoreThisMonth {
+                captureMode = .manual
+            }
         }
     }
 
@@ -227,7 +230,9 @@ struct AddAppointmentView: View {
 
     private var scanHero: some View {
         VStack(spacing: LinearDesign.Spacing.small) {
-            if let selectedImage {
+            if !store.canUploadMoreThisMonth {
+                scanLimitReachedState
+            } else if let selectedImage {
                 Image(uiImage: selectedImage)
                     .resizable()
                     .scaledToFit()
@@ -240,6 +245,50 @@ struct AddAppointmentView: View {
                 emptyCaptureButton
             }
         }
+    }
+
+    private var scanLimitReachedState: some View {
+        VStack(spacing: LinearDesign.Spacing.large) {
+            Image(systemName: "tray.full")
+                .font(.system(.largeTitle, design: .default).weight(.medium))
+                .foregroundStyle(LinearDesign.Colors.secondaryText)
+
+            VStack(spacing: LinearDesign.Spacing.xSmall) {
+                Text("appointment.capture.limit.title")
+                    .font(LinearDesign.Typography.heading3)
+                    .foregroundStyle(LinearDesign.Colors.primaryText)
+
+                Text("appointment.capture.limit.detail")
+                    .font(LinearDesign.Typography.body)
+                    .foregroundStyle(LinearDesign.Colors.tertiaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            VStack(spacing: LinearDesign.Spacing.small) {
+                Button("appointment.capture.switch.to.manual") {
+                    withAnimation(.easeInOut(duration: LinearDesign.Animation.fast)) {
+                        captureMode = .manual
+                    }
+                }
+                .buttonStyle(LinearButtonStyle())
+
+                if !store.isUploadQuotaBypassed {
+                    Button("Upgrade") {
+                        showingPlans = true
+                    }
+                    .buttonStyle(LinearButtonStyle(variant: .secondary))
+                }
+            }
+        }
+        .padding(LinearDesign.Spacing.large)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 260)
+        .background(LinearDesign.Colors.secondarySurface.opacity(0.45))
+        .clipShape(RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinearDesign.Radius.xLarge, style: .continuous)
+                .stroke(LinearDesign.Colors.borderSubtle, lineWidth: 1)
+        )
     }
 
     private var emptyCaptureButton: some View {

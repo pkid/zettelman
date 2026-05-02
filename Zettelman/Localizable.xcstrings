@@ -154,6 +154,38 @@
         }
       }
     },
+    "appointment.capture.limit.detail" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Scan-Uploads für diesen Monat sind aufgebraucht. Wechsle zu Manuell, um den Termin jetzt hinzuzufügen, oder upgrade für weitere Scans."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've used all scan uploads for this month. Switch to Manual to add this appointment now, or upgrade for more scans."
+          }
+        }
+      }
+    },
+    "appointment.capture.limit.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan-Limit erreicht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan limit reached"
+          }
+        }
+      }
+    },
     "appointment.capture.enter.manually" : {
       "localizations" : {
         "de" : {
@@ -295,6 +327,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Take photo"
+          }
+        }
+      }
+    },
+    "appointment.capture.switch.to.manual" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manuell fortfahren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use manual entry"
           }
         }
       }
