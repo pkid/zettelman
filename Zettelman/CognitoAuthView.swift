@@ -78,7 +78,7 @@ struct CognitoAuthView: View {
             .textInputAutocapitalization(.never)
             .keyboardType(.emailAddress)
             .autocorrectionDisabled()
-            .textContentType(nil)
+            .textContentType(.username)
             .disabled(isLoading)
 
             if mode == .signIn || mode == .signUp || mode == .confirmResetPassword {
@@ -86,7 +86,8 @@ struct CognitoAuthView: View {
                     placeholder: mode == .confirmResetPassword
                         ? String(localized: "auth.new.password")
                         : String(localized: "auth.password"),
-                    text: $password
+                    text: $password,
+                    textContentType: mode == .signIn ? .password : .newPassword
                 )
                 .onChange(of: password) { newValue in
                     if !newValue.isEmpty {
@@ -99,7 +100,8 @@ struct CognitoAuthView: View {
             if mode == .signUp || mode == .confirmResetPassword {
                 LinearPasswordField(
                     placeholder: String(localized: "auth.confirm.password"),
-                    text: $confirmPassword
+                    text: $confirmPassword,
+                    textContentType: .newPassword
                 )
                 .disabled(isLoading)
             }
@@ -111,7 +113,7 @@ struct CognitoAuthView: View {
                 )
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
-                .textContentType(nil)
+                .textContentType(.oneTimeCode)
                 .disabled(isLoading)
             }
 
@@ -142,14 +144,14 @@ struct CognitoAuthView: View {
         VStack(spacing: LinearDesign.Spacing.small) {
             switch mode {
             case .signIn:
-                Button("auth.create.account") { mode = .signUp }
+                Button("auth.create.account") { transition(to: .signUp) }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
-                Button("auth.forgot.password") { mode = .resetPassword }
+                Button("auth.forgot.password") { transition(to: .resetPassword) }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .signUp:
-                Button("auth.already.have.account") { mode = .signIn }
+                Button("auth.already.have.account") { transition(to: .signIn) }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .confirmSignUp:
@@ -160,15 +162,15 @@ struct CognitoAuthView: View {
                 .foregroundStyle(LinearDesign.Colors.accentViolet)
                 .disabled(isLoading)
 
-                Button("auth.back.to.signin") { mode = .signIn }
+                Button("auth.back.to.signin") { transition(to: .signIn) }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .resetPassword:
-                Button("auth.back.to.signin") { mode = .signIn }
+                Button("auth.back.to.signin") { transition(to: .signIn) }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
             case .confirmResetPassword:
-                Button("auth.back.to.signin") { mode = .signIn }
+                Button("auth.back.to.signin") { transition(to: .signIn) }
                     .font(LinearDesign.Typography.small)
                     .foregroundStyle(LinearDesign.Colors.accentViolet)
             }
@@ -248,11 +250,11 @@ struct CognitoAuthView: View {
                     case .completed:
                         alertMessage = String(localized: "auth.signup.success")
                         showingAlert = true
-                        mode = .signIn
+                        transition(to: .signIn)
                     case .needsConfirmation:
                         alertMessage = String(localized: "auth.signup.code.sent")
                         showingAlert = true
-                        mode = .confirmSignUp
+                        transition(to: .confirmSignUp)
                     }
                 case .failure(let error):
                     result = .failure(error)
@@ -265,7 +267,7 @@ struct CognitoAuthView: View {
             case .resetPassword:
                 result = await authManager.resetPassword(email: normalizedEmail)
                 if case .success = result {
-                    mode = .confirmResetPassword
+                    transition(to: .confirmResetPassword)
                 }
             case .confirmResetPassword:
                 result = await authManager.confirmResetPassword(
@@ -283,16 +285,16 @@ struct CognitoAuthView: View {
                 restorePasswordIfUnexpectedlyCleared()
                 if submittedMode == .signIn,
                    authManager.pendingSignUpEmail?.lowercased() == normalizedEmail.lowercased() {
-                    mode = .confirmSignUp
+                    transition(to: .confirmSignUp)
                 }
             } else if submittedMode == .confirmSignUp {
                 alertMessage = String(localized: "auth.confirm.signup.success")
                 showingAlert = true
-                mode = .signIn
+                transition(to: .signIn)
             } else if submittedMode == .confirmResetPassword {
                 alertMessage = String(localized: "auth.confirm.reset.success")
                 showingAlert = true
-                mode = .signIn
+                transition(to: .signIn)
             }
         }
     }
@@ -324,6 +326,18 @@ struct CognitoAuthView: View {
               !lastTypedPassword.isEmpty else { return }
         password = lastTypedPassword
     }
+
+    private func transition(to newMode: AuthMode) {
+        mode = newMode
+        clearSensitiveFields()
+    }
+
+    private func clearSensitiveFields() {
+        password = ""
+        lastTypedPassword = ""
+        confirmPassword = ""
+        confirmationCode = ""
+    }
 }
 
 struct LinearTextField: View {
@@ -339,6 +353,7 @@ struct LinearTextField: View {
 struct LinearPasswordField: View {
     let placeholder: String
     @Binding var text: String
+    let textContentType: UITextContentType
     @State private var isTextVisible = false
 
     var body: some View {
@@ -346,7 +361,8 @@ struct LinearPasswordField: View {
             SecureToggleTextField(
                 placeholder: placeholder,
                 text: $text,
-                isSecure: !isTextVisible
+                isSecure: !isTextVisible,
+                textContentType: textContentType
             )
             .frame(maxWidth: .infinity)
 
@@ -369,6 +385,7 @@ struct SecureToggleTextField: UIViewRepresentable {
     let placeholder: String
     @Binding var text: String
     let isSecure: Bool
+    let textContentType: UITextContentType
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -387,7 +404,7 @@ struct SecureToggleTextField: UIViewRepresentable {
         textField.smartQuotesType = .no
         textField.smartDashesType = .no
         textField.smartInsertDeleteType = .no
-        textField.textContentType = .oneTimeCode
+        textField.textContentType = textContentType
         textField.delegate = context.coordinator
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textDidChange(_:)), for: .editingChanged)
         return textField
@@ -398,6 +415,7 @@ struct SecureToggleTextField: UIViewRepresentable {
 
         uiView.placeholder = placeholder
         uiView.isEnabled = context.environment.isEnabled
+        uiView.textContentType = textContentType
 
         if uiView.text != text {
             uiView.text = text

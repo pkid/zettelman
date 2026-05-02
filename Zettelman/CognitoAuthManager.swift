@@ -37,20 +37,28 @@ final class CognitoAuthManager: ObservableObject {
             let session = try await Amplify.Auth.fetchAuthSession()
             guard session.isSignedIn else {
                 resetSessionState()
+                errorMessage = nil
                 return
             }
 
-            let currentUser = try await Amplify.Auth.getCurrentUser()
-            let attributes = try await Amplify.Auth.fetchUserAttributes()
-            let email = attributes.first(where: { $0.key == .email })?.value ?? currentUser.username
+            do {
+                let currentUser = try await Amplify.Auth.getCurrentUser()
+                let attributes = try await Amplify.Auth.fetchUserAttributes()
+                let email = attributes.first(where: { $0.key == .email })?.value ?? currentUser.username
 
-            isSignedIn = true
-            userEmail = email
-            authState = .signedIn
-            errorMessage = nil
+                isSignedIn = true
+                userEmail = email
+                authState = .signedIn
+                errorMessage = nil
+            } catch {
+                await clearRemoteSession()
+                resetSessionState()
+                errorMessage = normalizedAuthError(from: error).localizedDescription
+            }
         } catch {
+            await clearRemoteSession()
             resetSessionState()
-            errorMessage = error.localizedDescription
+            errorMessage = normalizedAuthError(from: error).localizedDescription
         }
     }
 
@@ -59,7 +67,7 @@ final class CognitoAuthManager: ObservableObject {
         errorMessage = nil
 
         do {
-            let result = try await Amplify.Auth.signIn(username: email, password: password)
+            let result = try await signInWithRecovery(email: email, password: password)
             guard result.isSignedIn else {
                 authState = .signedOut
                 return .failure(AuthError.unknown(String(localized: "auth.error.additional.steps")))
@@ -178,6 +186,7 @@ final class CognitoAuthManager: ObservableObject {
                 with: newPassword,
                 confirmationCode: confirmationCode
             )
+            await clearRemoteSession()
             authState = .signedOut
             return .success(())
         } catch {
@@ -214,10 +223,39 @@ final class CognitoAuthManager: ObservableObject {
         authState = .signedOut
     }
 
+    private func signInWithRecovery(email: String, password: String) async throws -> AuthSignInResult {
+        do {
+            return try await Amplify.Auth.signIn(username: email, password: password)
+        } catch {
+            guard isInvalidStateError(error) else {
+                throw error
+            }
+
+            await clearRemoteSession()
+            return try await Amplify.Auth.signIn(username: email, password: password)
+        }
+    }
+
+    private func clearRemoteSession() async {
+        _ = await Amplify.Auth.signOut()
+    }
+
     private func isUserNotConfirmedError(_ error: Error) -> Bool {
         let message = "\(error)"
         return message.localizedCaseInsensitiveContains("UserNotConfirmedException")
             || message.localizedCaseInsensitiveContains("not confirmed")
+    }
+
+    private func isInvalidStateError(_ error: Error) -> Bool {
+        guard let authError = error as? AuthError else {
+            return false
+        }
+
+        if case .invalidState = authError {
+            return true
+        }
+
+        return false
     }
 
     private func normalizedAuthError(from error: Error) -> Error {
@@ -247,6 +285,34 @@ final class CognitoAuthManager: ObservableObject {
                 code: 3,
                 userInfo: [NSLocalizedDescriptionKey: message]
             )
+        case .invalidState(let description, let recoverySuggestion, _):
+            let message = bestMessage(description: description, fallback: recoverySuggestion)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 5,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
+        case .configuration(let description, let recoverySuggestion, _):
+            let message = bestMessage(description: description, fallback: recoverySuggestion)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 6,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
+        case .signedOut(let description, let recoverySuggestion, _):
+            let message = bestMessage(description: description, fallback: recoverySuggestion)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 7,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
+        case .sessionExpired(let description, let recoverySuggestion, _):
+            let message = bestMessage(description: description, fallback: recoverySuggestion)
+            return NSError(
+                domain: "Zettelman.Auth",
+                code: 8,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
         case .unknown(let description, _):
             let message = description.trimmingCharacters(in: .whitespacesAndNewlines)
             return NSError(
@@ -254,8 +320,6 @@ final class CognitoAuthManager: ObservableObject {
                 code: 4,
                 userInfo: [NSLocalizedDescriptionKey: message.isEmpty ? String(localized: "auth.error.failed.tryagain") : message]
             )
-        default:
-            return error
         }
     }
 
